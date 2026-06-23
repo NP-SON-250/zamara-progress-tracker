@@ -113,11 +113,9 @@ const SocialDashboard = () => {
       );
 
       if (dept && dept._id) {
-        console.log("Found department in localStorage:", dept);
         return dept._id;
       }
 
-      console.log("Department not in localStorage, fetching from API...");
       const response = await api.get("/departments/all-departments");
       if (response.data.success) {
         const departments = response.data.data || [];
@@ -128,7 +126,6 @@ const SocialDashboard = () => {
         );
 
         if (dept && dept._id) {
-          console.log("Found department from API:", dept);
           return dept._id;
         }
       }
@@ -160,7 +157,6 @@ const SocialDashboard = () => {
       }
 
       setDepartmentId(deptId);
-      console.log("Fetching tasks for department ID:", deptId);
 
       const response = await getTasksByDepartment(deptId);
       if (response.success) {
@@ -534,7 +530,7 @@ const SocialDashboard = () => {
           {/* Charts Row */}
           <div className="flex-shrink-0 flex flex-col lg:flex-row gap-4">
             {/* Pie Chart */}
-            <div className="border border-gray-200 rounded-md md:w-[400px]">
+            <div className="border border-gray-200 rounded-md w-full lg:w-[400px] min-w-0">
               <div className="flex justify-between items-center p-1 border-b border-gray-200">
                 <p className="text-xs font-bold text-zblue/60">
                   Task Breakdown
@@ -591,7 +587,7 @@ const SocialDashboard = () => {
             </div>
 
             {/* Bar Chart */}
-            <div className="border border-gray-200 rounded-md flex-1">
+            <div className="border border-gray-200 rounded-md flex-1 min-w-0">
               <div className="p-2 border-b border-gray-200">
                 <p className="text-xs font-bold text-zblue/60">
                   Weekly Performance

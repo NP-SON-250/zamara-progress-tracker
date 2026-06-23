@@ -202,7 +202,6 @@ const Login = () => {
           assignedTasks &&
           assignedTasks.length > 0
         ) {
-          console.warn("assignedTasks not saved! Forcing save...");
           localStorage.setItem("assignedTasks", JSON.stringify(assignedTasks));
           // Verify again
           const recheckTasks = JSON.parse(
@@ -261,9 +260,6 @@ const Login = () => {
             localStorage.setItem("user", JSON.stringify(cleanUser));
             setTimeout(() => navigateToDashboard(retryCount + 1), 300);
           } else {
-            console.warn(
-              "Data still not ready after 5 retries, navigating anyway",
-            );
             // Last resort - save one more time
             localStorage.setItem(
               "departments",
@@ -299,7 +295,6 @@ const Login = () => {
   /*DEPARTMENT -> DASHBOARD MAPPING*/
   const getDashboardPath = (departments, user) => {
     if (!Array.isArray(departments) || departments.length === 0) {
-      console.warn("No departments found for user");
       return "/notfound";
     }
 
@@ -325,8 +320,6 @@ const Login = () => {
       return "/administration/dashboard";
     if (normalized.includes("claims")) return "/claims/dashboard";
     if (normalized.includes("social")) return "/social/dashboard";
-
-    console.warn("No matching dashboard for departments:", departments);
     return "/notfound";
   };
 

@@ -28,23 +28,47 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        if (!departmentId) return;
-
+        if (!departmentId) {
+          console.log("No department ID available");
+          return;
+        }
         const response = await getUsersByDepartment(departmentId);
-        if (response.status === "200") {
-          setUsers(response.data || []);
+
+        if (response.status === "200" && response.data) {
+          if (response.data.length === 0) {
+            // Try fetching all users as fallback
+            const allUsersRes = await api.get("/users/all-users");
+            if (allUsersRes.data.status === "200") {
+              // Filter users that belong to this department
+              const filtered = allUsersRes.data.data.filter((user) => {
+                // Check if user has departments array
+                if (user.departments && Array.isArray(user.departments)) {
+                  return user.departments.some(
+                    (dept) =>
+                      dept._id === departmentId || dept === departmentId,
+                  );
+                }
+                // Check if user has single department field
+                if (user.department) {
+                  return (
+                    user.department === departmentId ||
+                    user.department._id === departmentId
+                  );
+                }
+                return false;
+              });
+              setUsers(filtered);
+            }
+          } else {
+            setUsers(response.data);
+          }
+        } else {
+          console.log("No users found or API error");
+          setUsers([]);
         }
       } catch (error) {
         console.error("Error fetching users:", error);
-        try {
-          const allUsersResponse = await api.get("/users/all-users");
-          if (allUsersResponse.data.status === "200") {
-            const allUsers = allUsersResponse.data.data || [];
-            setUsers(allUsers);
-          }
-        } catch (fallbackError) {
-          console.error("Fallback error fetching users:", fallbackError);
-        }
+        setUsers([]);
       }
     };
 
@@ -259,7 +283,7 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
 
           {/* Description */}
           <div className="mb-4 flex justify-between items-start gap-5 w-full">
-            <label className="text-sm font-medium text-gray-700 w-[23%] pt-2">
+            <label className="text-sm font-medium text-gray-700 w-[30%] pt-2">
               Description
             </label>
             <textarea
@@ -284,7 +308,7 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
 
           {/* Assigned Users - Multi Select */}
           <div className="mb-4 flex justify-between items-start gap-5 w-full">
-            <label className="text-sm font-medium text-gray-700 w-[23%] pt-2">
+            <label className="text-sm font-medium text-gray-700 w-[30%] pt-2">
               Assigned To
             </label>
             <div className="w-full">
@@ -330,7 +354,7 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
 
           {/* Start Date */}
           <div className="mb-4 flex justify-between items-center gap-5 w-full">
-            <label className="text-sm font-medium text-gray-700 w-[23%]">
+            <label className="text-sm font-medium text-gray-700 w-[30%]">
               Start Date
             </label>
             <input
@@ -346,7 +370,7 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
 
           {/* Deadline */}
           <div className="mb-4 flex justify-between items-center gap-5 w-full">
-            <label className="text-sm font-medium text-gray-700 w-[23%]">
+            <label className="text-sm font-medium text-gray-700 w-[30%]">
               Deadline
             </label>
             <input

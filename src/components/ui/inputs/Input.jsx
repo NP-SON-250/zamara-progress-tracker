@@ -11,7 +11,7 @@ const Input = ({
 }) => {
   return (
     <div className="mb-4 flex justify-between items-center gap-5 w-full">
-      <label className="text-sm font-medium text-gray-700 w-[23%]">
+      <label className="text-sm font-medium text-gray-700 w-[30%]">
         {label}
       </label>
 
