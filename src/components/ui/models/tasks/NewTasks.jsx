@@ -269,7 +269,7 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="py-6 px-2 space-y-4">
           {/* Task Name */}
           <Input
             label="Task Name"
@@ -283,7 +283,7 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
 
           {/* Description */}
           <div className="mb-4 flex justify-between items-start gap-5 w-full">
-            <label className="text-sm font-medium text-gray-700 w-[30%] pt-2">
+            <label className="text-sm font-medium text-gray-700 md:w-[30%] pt-2">
               Description
             </label>
             <textarea
@@ -308,8 +308,8 @@ const NewTasks = ({ isOpen, onClose, departmentId, onTaskCreated }) => {
 
           {/* Assigned Users - Multi Select */}
           <div className="mb-4 flex justify-between items-start gap-5 w-full">
-            <label className="text-sm font-medium text-gray-700 w-[30%] pt-2">
-              Assigned To
+            <label className="text-sm font-medium text-gray-700 md:w-[30%] w-[32%] pt-2">
+              AssignedTo
             </label>
             <div className="w-full">
               <select

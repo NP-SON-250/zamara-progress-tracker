@@ -68,7 +68,6 @@ const Login = () => {
         password: formData.password,
       };
       const data = await loginUser(payload);
-      console.log("Login response:", data);
 
       if (data?.status === 200 || data?.status === "200") {
         setError("");
@@ -129,22 +128,10 @@ const Login = () => {
 
     try {
       const response = await verifyOtp(otpData);
-      console.log("Full verify OTP response:", response);
-
       if (response?.status === 200 || response?.status === "200") {
         const responseData = response.data;
         const { token, user, assignedTasks, departments, message } =
           responseData;
-
-        console.log("Extracted data:", {
-          token: !!token,
-          user: !!user,
-          userEmail: user?.email,
-          userId: user?._id,
-          assignedTasks: assignedTasks?.length || 0,
-          departments: departments?.length || 0,
-        });
-
         // Create a clean user object with all data
         const cleanUser = {
           _id: user._id,
@@ -157,11 +144,8 @@ const Login = () => {
           registeredOn: user.registeredOn || "",
         };
 
-        console.log("Clean user object:", cleanUser);
-
         // Store in localStorage
         localStorage.setItem("token", token);
-        console.log("Stored token:", localStorage.getItem("token"));
         localStorage.setItem("user", JSON.stringify(cleanUser));
         localStorage.setItem("departments", JSON.stringify(departments || []));
         localStorage.setItem(
@@ -171,14 +155,6 @@ const Login = () => {
 
         // VERIFY the data was saved correctly
         const verifyUser = JSON.parse(localStorage.getItem("user") || "null");
-        console.log(
-          "Verification - User saved:",
-          verifyUser ? "Yes" : "No",
-          verifyUser?._id,
-        );
-
-        console.log("Clean user object:", cleanUser);
-        console.log("Assigned tasks to save:", assignedTasks?.length || 0);
 
         // Verify ALL storage immediately
         const storedDepts = JSON.parse(
@@ -224,8 +200,6 @@ const Login = () => {
         const userDepartments = departments?.map((d) => d.name || d) || [];
         const dashboardPath = getDashboardPath(userDepartments, user);
 
-        console.log("Navigating to dashboard:", dashboardPath);
-
         // Navigate after ensuring data is saved
         const navigateToDashboard = (retryCount = 0) => {
           const checkDepts = JSON.parse(
@@ -235,13 +209,7 @@ const Login = () => {
             localStorage.getItem("assignedTasks") || "[]",
           );
           const checkUser = JSON.parse(localStorage.getItem("user") || "null");
-
-          console.log(
-            `Navigation check (attempt ${retryCount + 1}) - Departments: ${checkDepts.length}, Tasks: ${checkTasks.length}, User: ${!!checkUser}`,
-          );
-
           if (checkDepts && checkDepts.length > 0 && checkUser) {
-            console.log("Data confirmed, navigating to:", dashboardPath);
             navigate(dashboardPath, { replace: true });
           } else if (retryCount < 5) {
             // Retry after delay
@@ -303,8 +271,6 @@ const Login = () => {
         ? d?.trim().toLowerCase()
         : d?.name?.trim().toLowerCase(),
     );
-
-    console.log("Normalized departments:", normalized);
 
     if (normalized.includes("technical")) return "/technical/dashboard";
     if (normalized.includes("pension")) return "/pension/dashboard";
