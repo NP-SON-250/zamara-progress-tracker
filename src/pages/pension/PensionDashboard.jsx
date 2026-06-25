@@ -16,14 +16,14 @@ import Welcome from "../../components/ui/models/Welcome";
 import InforCard from "../../components/ui/models/cards/InforCard";
 import DataTable from "../../components/ui/tables/DataTable";
 import FilterPane from "../../components/ui/models/FilterPane";
-import { IoIosCloudDone } from "react-icons/io";
+import { IoIosCloudDone, IoMdClose, IoMdDownload } from "react-icons/io";
 import { CiEdit, CiSettings, CiFilter } from "react-icons/ci";
 import { FiCalendar } from "react-icons/fi";
 import { GoTasklist } from "react-icons/go";
 import { RiExportLine } from "react-icons/ri";
 import { GiProgression } from "react-icons/gi";
 import { FaHandHoldingHand } from "react-icons/fa6";
-import { getTasksByDepartment } from "../../services/tasksService";
+import { getTasksByDepartment, deleteTask } from "../../services/tasksService";
 import { FcSalesPerformance, FcExpired } from "react-icons/fc";
 import Button from "../../components/ui/bottons/Button";
 import api from "../../api/axios";
@@ -39,6 +39,7 @@ const PensionDashboard = () => {
   const [error, setError] = useState(null);
   const [departmentName, setDepartmentName] = useState("Pension");
   const [departmentId, setDepartmentId] = useState(null);
+  const [notification, setNotification] = useState({ message: "", type: "" });
 
   // Table states
   const [activeColumn, setActiveColumn] = useState(null);
@@ -55,6 +56,20 @@ const PensionDashboard = () => {
 
   //====Export Options====
   const [showExportOptions, setShowExportOptions] = useState(false);
+
+  //====Full Report Preview====
+  const [showFullReportPreview, setShowFullReportPreview] = useState(false);
+  const [fullReportData, setFullReportData] = useState(null);
+
+  //====Clear notification after 3 seconds====
+  useEffect(() => {
+    if (notification.message) {
+      const timer = setTimeout(() => {
+        setNotification({ message: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   //====Get user data from localStorage====
   const getUserFromStorage = () => {
@@ -250,6 +265,97 @@ const PensionDashboard = () => {
     setShowFilterPane(true);
   };
 
+  //====Calculate Cards Helper====
+  const calculateCards = (tasks) => {
+    const total = tasks.length;
+    const running = tasks.filter((t) => t.status === "Running").length;
+    const onHold = tasks.filter((t) => t.status === "On Hold").length;
+    const completed = tasks.filter((t) => t.status === "Completed").length;
+    const overdue = tasks.filter((t) => t.status === "Overdue").length;
+    const closed = tasks.filter((t) => t.status === "Closed").length;
+
+    return {
+      totalTasks: total,
+      runningTasks: running,
+      onHoldTasks: onHold,
+      completedTasks: completed,
+      overdueTasks: overdue,
+      closedTasks: closed,
+    };
+  };
+
+  //====Handle Task Update====
+  const handleTaskUpdate = () => {
+    setNotification({
+      message: "Task updated!",
+      type: "success",
+    });
+  };
+
+  //====Handle Task Delete====
+  const handleTaskDelete = async (taskId) => {
+    const response = await deleteTask(taskId);
+
+    if (response.success) {
+      setNotification({
+        message: "Task deleted!",
+        type: "success",
+      });
+
+      return response;
+    }
+
+    throw new Error(response.message);
+  };
+
+  //====Handle Full Report====
+  const handleFullReport = () => {
+    if (!tableData || tableData.length === 0) {
+      setNotification({
+        message: "No data available for full report",
+        type: "error",
+      });
+      return;
+    }
+
+    // Prepare the data with all fields
+    const reportData = tableData.map((row) => ({
+      "TASK NUMBER": row.taskNumber || "-",
+      "TASK NAME": row.name || "-",
+      DESCRIPTION: row.description || "-",
+      STATUS: row.status || "-",
+      PRIORITY: row.priority || "-",
+      "COMPLETENESS LEVEL": row.completenessLevel || "-",
+      PROGRESS: `${row.progress || 0}%`,
+      "ASSIGNED TO": Array.isArray(row.asignedTo)
+        ? row.asignedTo.map((user) => user.fullname || user).join(", ")
+        : row.asignedTo || "-",
+      "START DATE": row.startDate
+        ? new Date(row.startDate).toLocaleDateString()
+        : "-",
+      DEADLINE:
+        row.deadline || row.endDate
+          ? new Date(row.deadline || row.endDate).toLocaleDateString()
+          : "-",
+      "COMPLETED ON": row.completedOn
+        ? new Date(row.completedOn).toLocaleDateString()
+        : "-",
+      "MANAGER COMMENTS":
+        Array.isArray(row.managerComment) && row.managerComment.length > 0
+          ? row.managerComment.join(", ")
+          : "-",
+      "REASONS FOR EXTENDING":
+        row.reasonsForExtending && row.reasonsForExtending !== "null"
+          ? row.reasonsForExtending
+          : "-",
+      OVERDUE: row.overdued ? "Yes" : "No",
+      "EXTENDED DEADLINE": row.extendedDeadline ? "Yes" : "No",
+    }));
+
+    setFullReportData(reportData);
+    setShowFullReportPreview(true);
+  };
+
   //====Table Columns====
   const columns = useMemo(
     () => [
@@ -373,6 +479,10 @@ const PensionDashboard = () => {
 
   const handleTaskCreated = (newTask) => {
     fetchTasks();
+    setNotification({
+      message: "Task created successfully!",
+      type: "success",
+    });
   };
 
   //====Available fields for filtering====
@@ -397,6 +507,126 @@ const PensionDashboard = () => {
 
   //====Check if we have data====
   const hasData = tasksData && tasksData.tasks && tasksData.tasks.length > 0;
+
+  //====Full Report Preview Modal====
+  const FullReportPreviewModal = () => {
+    if (!showFullReportPreview || !fullReportData) return null;
+
+    const headers = Object.keys(fullReportData[0] || {});
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+        <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[95vh] flex flex-col font-museo">
+          {/* Preview Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10 rounded-t-lg">
+            <div>
+              <h2 className="text-xl font-bold text-zblue font-museo">
+                {departmentName} Department
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowFullReportPreview(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <IoMdClose size={24} className="text-gray-500" />
+              </button>
+            </div>
+          </div>
+
+          {/* Preview Table with both horizontal and vertical scrolling */}
+          <div className="flex-1 overflow-auto p-4 bg-gray-50">
+            <div className="border border-gray-300 rounded-md bg-white overflow-hidden">
+              <div
+                className="overflow-auto scrollbar-hide"
+                style={{ maxHeight: "calc(75vh - 150px)", maxWidth: "100%" }}
+              >
+                <table className="w-full border-collapse">
+                  <thead className="sticky top-0 z-10">
+                    <tr>
+                      {headers.map((header, index) => (
+                        <th
+                          key={index}
+                          className="px-3 py-2.5 text-left text-xs font-semibold whitespace-nowrap bg-zblue text-white font-museo border border-gray-300"
+                          style={{
+                            minWidth: header.length > 20 ? "200px" : "120px",
+                            position: "sticky",
+                            top: 0,
+                            zIndex: 10,
+                          }}
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="font-museo">
+                    {fullReportData.map((row, rowIndex) => (
+                      <tr
+                        key={rowIndex}
+                        className={`${
+                          rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-blue-50 transition-colors`}
+                      >
+                        {headers.map((header, colIndex) => (
+                          <td
+                            key={colIndex}
+                            className={`px-3 py-2 text-xs text-gray-700 border border-gray-300 font-museo whitespace-nowrap ${
+                              rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            }`}
+                            style={{
+                              minWidth: header.length > 20 ? "200px" : "120px",
+                            }}
+                          >
+                            {row[header] || "-"}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Summary Footer */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                <p className="text-xs text-gray-500 font-museo">Total Tasks</p>
+                <p className="text-lg font-bold text-zblue font-museo">
+                  {fullReportData.length}
+                </p>
+              </div>
+              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                <p className="text-xs text-gray-500 font-museo">Department</p>
+                <p className="text-lg font-bold text-zblue font-museo">
+                  {departmentName}
+                </p>
+              </div>
+              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                <p className="text-xs text-gray-500 font-museo">Performance</p>
+                <p className="text-lg font-bold text-green-600 font-museo">
+                  {performance}%
+                </p>
+              </div>
+              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                <p className="text-xs text-gray-500 font-museo">Generated On</p>
+                <p className="text-sm font-semibold text-gray-700 font-museo">
+                  {new Date().toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Footer */}
+          <div className="flex justify-between items-center p-4 border-t border-gray-200 bg-white rounded-b-lg">
+            <p className="text-md text-zblue font-semibold">
+              Previewing as: {fullName}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   //====Loading state====
   if (loading) {
@@ -439,27 +669,38 @@ const PensionDashboard = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
+      {/* Notification Banner */}
+      {notification.message && (
+        <div
+          className={`fixed top-20 right-4 z-50 px-4 py-3 rounded-md shadow-lg transition-all duration-300 ${
+            notification.type === "success"
+              ? "bg-green-50 border border-green-200 text-green-800"
+              : "bg-red-50 border border-red-200 text-red-800"
+          }`}
+        >
+          <p className="text-sm font-medium">{notification.message}</p>
+        </div>
+      )}
+
       {/* Department Menu - Fixed at top with z-index */}
       <div className="flex-shrink-0 sticky top-0 z-40">
         <DepartmentMenu />
       </div>
 
       {/* Welcome and Actions - Fixed under menu */}
-      <div className="flex-shrink-0 bg-white z-30 sticky top-[45px] flex flex-wrap items-center justify-between px-5 py-2 border-b border-gray-200">
+      <div className="flex-shrink-0 bg-white z-30 sticky top-[45px] flex flex-wrap items-center md:justify-between px-5 py-2 border-b border-gray-200">
         <Welcome user={fullName} />
-        <div className="flex md:gap-2 gap-6 relative">
-          <Button
-            type="button"
-            color="zblue"
-            onClick={() => setShowFilterPane(!showFilterPane)}
-          >
-            <CiFilter />
-            Filter
-          </Button>
-          <Button type="button" color="zblue">
-            <CiSettings />
-            Customise
-          </Button>
+        <div className="flex md:gap-2 gap-6">
+          <div className="">
+            <Button
+              type="button"
+              color="zblue"
+              onClick={() => setShowFilterPane(!showFilterPane)}
+            >
+              <CiFilter />
+              Filter
+            </Button>
+          </div>
 
           {/* Export Button with Dropdown */}
           <div className="relative">
@@ -468,18 +709,20 @@ const PensionDashboard = () => {
               Export
             </Button>
 
-            <ExportOptions
-              isOpen={showExportOptions}
-              onClose={() => setShowExportOptions(false)}
-              data={tableData}
-              columns={columns}
-              departmentName={departmentName}
-              fullname={fullName}
-              performance={performance}
-              onExport={(type, data) => {
-                console.log(`Exported as ${type}:`, data);
-              }}
-            />
+            <div className="fixed md:top-30 md:right-8 right-5">
+              <ExportOptions
+                isOpen={showExportOptions}
+                onClose={() => setShowExportOptions(false)}
+                data={tableData}
+                columns={columns}
+                departmentName={departmentName}
+                fullname={fullName}
+                performance={performance}
+                onExport={(type, data) => {
+                  console.log(`Exported as ${type}:`, data);
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -535,7 +778,12 @@ const PensionDashboard = () => {
                 <p className="text-xs font-bold text-zblue/60">
                   Task Breakdown
                 </p>
-                <Button type="button" color="zblue" size="sm">
+                <Button
+                  type="button"
+                  color="zblue"
+                  size="sm"
+                  onClick={handleFullReport}
+                >
                   <CiEdit />
                   Full Report
                 </Button>
@@ -613,17 +861,17 @@ const PensionDashboard = () => {
 
           {/* Table Section */}
           <div className="flex-1 min-h-[200px] border border-gray-200 rounded-md flex flex-col">
-            <div className="md:flex-shrink-0 flex md:flex-row flex-col justify-between items-center p-2 border-b gap-4 border-gray-200">
+            <div className="md:flex-shrink-0 flex md:flex-row flex-col justify-between p-2 border-b gap-4 border-gray-200">
               <p className="text-xs font-bold text-zblue/60">
                 Task List {hasData ? `(${tasksData.tasks.length} tasks)` : ""}
               </p>
-              <div className="flex gap-2">
+              <div className="flex justify-between gap-2">
                 <input
                   type="text"
                   placeholder="Search tasks..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border border-gray-300 rounded md:px-3 px-1 hover:border-zgreen text-xs focus:outline-none focus:border-zgreen h-7"
+                  className="border md:text-xs text-md md:w-[60%] w-[65%] border-gray-300 rounded md:px-3 px-1 hover:border-zgreen focus:outline-none focus:border-zgreen h-7"
                 />
                 <Button
                   type="button"
@@ -658,6 +906,9 @@ const PensionDashboard = () => {
                     enableSelection={true}
                     selectedRows={selectedRows}
                     setSelectedRows={setSelectedRows}
+                    onRefresh={fetchTasks}
+                    onTaskUpdate={handleTaskUpdate}
+                    onTaskDelete={handleTaskDelete}
                   />
                 </div>
               )}
@@ -692,6 +943,9 @@ const PensionDashboard = () => {
         departmentId={departmentId}
         onTaskCreated={handleTaskCreated}
       />
+
+      {/* Full Report Preview Modal */}
+      <FullReportPreviewModal />
     </div>
   );
 };

@@ -56,6 +56,22 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
     navigate(newPath);
   };
 
+  // Navigate to department dashboard
+  const navigateToDepartmentDashboard = () => {
+    if (selectedDepartment) {
+      const departmentSlug = getDepartmentSlug(selectedDepartment);
+      // Navigate to the department dashboard (root path for the department)
+      navigate(`/${departmentSlug}/dashboard`);
+
+      // Reset active menu states
+      setActiveMenuItem("");
+      setActiveSubMenuItem("");
+      setActiveParentMenu("");
+      setOpenDropdown(null);
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   // Get department slug from name
   const getDepartmentSlug = (department) => {
     const slugMap = {
@@ -558,9 +574,12 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
       ref={dropdownRef}
     >
       <div className="flex md:flex-row flex-col md:items-center items-start gap-4">
-        {/* Left section - Department Name */}
+        {/* Left section - Department Name with click handler */}
         <div className="flex items-start justify-between w-full md:w-auto">
-          <div className="items-center gap-2 min-w-[200px] flex justify-start pl-4 py-1">
+          <div
+            className="items-center gap-2 flex justify-start pl-4 py-1 cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={navigateToDepartmentDashboard}
+          >
             <FiGrid className="text-blue-900/50 text-xl" />
             <h2 className="text-xs font-bold text-blue-900/50">
               {formatDepartmentName(selectedDepartment)} Department

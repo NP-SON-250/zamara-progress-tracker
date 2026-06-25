@@ -12,6 +12,9 @@ import { Filter } from "lucide-react";
 import { TbFilterPlus, TbFilterCancel } from "react-icons/tb";
 import { RiListCheck2, RiGitClosePullRequestLine } from "react-icons/ri";
 import { BsUiChecks } from "react-icons/bs";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import EditTask from "../models/tasks/EditTask";
+import DeleteConfirmationModal from "../models/tasks/DeleteConfirmationModal";
 
 const DataTable = ({
   columns = [],
@@ -29,10 +32,17 @@ const DataTable = ({
   selectedRows = [],
   setSelectedRows = () => {},
   onRefresh,
+  onTaskUpdate,
+  onTaskDelete,
 }) => {
   const [dropdownPos, setDropdownPos] = useState(null);
   const [activeRowAction, setActiveRowAction] = useState(null);
   const [rowActionPos, setRowActionPos] = useState({ top: 0, left: 0 });
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const actionRef = useRef(null);
 
@@ -45,32 +55,25 @@ const DataTable = ({
         const key = f.field.accessor;
         const value = row[key];
 
-        // If no filter value, return true (no filter applied)
         if (!f.value || f.value.trim() === "") return true;
         if (value === null || value === undefined) return false;
 
-        // Handle date type
         if (f.field.type === "date") {
           const dateValue = value ? new Date(value) : null;
           if (!dateValue) return false;
           return dateValue.toISOString().slice(0, 10) === f.value;
         }
 
-        // Handle select type - exact match
         if (f.field.type === "select") {
           return String(value).toLowerCase() === String(f.value).toLowerCase();
         }
 
-        // Handle number type
         if (f.field.type === "number") {
           return Number(value) === Number(f.value);
         }
 
-        // Handle array fields (like asignedTo)
         if (Array.isArray(value)) {
-          // Check if any item in the array matches the search
           return value.some((item) => {
-            // If item is an object, check its properties
             if (typeof item === "object" && item !== null) {
               return Object.values(item).some((val) =>
                 String(val)
@@ -78,14 +81,12 @@ const DataTable = ({
                   .includes(String(f.value).toLowerCase()),
               );
             }
-            // If item is a primitive, check it directly
             return String(item)
               .toLowerCase()
               .includes(String(f.value).toLowerCase());
           });
         }
 
-        // Default: text search (case insensitive)
         return String(value)
           .toLowerCase()
           .includes(String(f.value).toLowerCase());
@@ -94,7 +95,6 @@ const DataTable = ({
       const matchesSearch =
         !searchTerm ||
         Object.values(row).some((val) => {
-          // Handle array values in search
           if (Array.isArray(val)) {
             return val.some((item) => {
               if (typeof item === "object" && item !== null) {
@@ -130,21 +130,18 @@ const DataTable = ({
       const valA = a[accessor];
       const valB = b[accessor];
 
-      // Handle dates
       if (accessor === "startDate" || accessor === "deadline") {
         const dateA = valA ? new Date(valA).getTime() : 0;
         const dateB = valB ? new Date(valB).getTime() : 0;
         return direction === "asc" ? dateA - dateB : dateB - dateA;
       }
 
-      // Handle numbers
       if (accessor === "progress") {
         const numA = parseInt(valA) || 0;
         const numB = parseInt(valB) || 0;
         return direction === "asc" ? numA - numB : numB - numA;
       }
 
-      // Handle arrays - sort by first item or string representation
       if (Array.isArray(valA) && Array.isArray(valB)) {
         const strA = valA
           .map((item) =>
@@ -165,7 +162,6 @@ const DataTable = ({
           : strB.localeCompare(strA);
       }
 
-      // Default string comparison
       const strA = String(valA).toLowerCase();
       const strB = String(valB).toLowerCase();
       if (strA < strB) return direction === "asc" ? -1 : 1;
@@ -199,14 +195,57 @@ const DataTable = ({
   };
 
   // ======================
+  // TASK ACTION HANDLERS
+  // ======================
+  const handleViewEdit = (row) => {
+    setSelectedTask(row);
+    setShowEditModal(true);
+    setActiveRowAction(null);
+  };
+
+  const handleDeleteClick = (row) => {
+    setTaskToDelete(row);
+    setShowDeleteModal(true);
+    setActiveRowAction(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (taskToDelete && onTaskDelete && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        // Call the delete function from parent
+        await onTaskDelete(taskToDelete._id);
+        setShowDeleteModal(false);
+        setTaskToDelete(null);
+        // Refresh the data from server after successful delete
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } catch (error) {
+        console.error("Error in delete confirmation:", error);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
+
+  const handleEditComplete = async () => {
+    setShowEditModal(false);
+    setSelectedTask(null);
+
+    if (onRefresh) {
+      await onRefresh();
+    }
+  };
+  // ======================
   // ROW ACTION MENU WITH IMPROVED POSITIONING
   // ======================
-  const openActionMenu = (e, rowId) => {
+  const openActionMenu = (e, row) => {
     e.stopPropagation();
 
     const buttonRect = e.currentTarget.getBoundingClientRect();
-    const menuWidth = 140;
-    const menuHeight = 100;
+    const menuWidth = 180;
+    const menuHeight = 120;
     const spacing = 8;
     const viewportPadding = 10;
 
@@ -248,7 +287,7 @@ const DataTable = ({
       Math.min(left, viewportWidth - menuWidth - viewportPadding),
     );
 
-    setActiveRowAction(rowId);
+    setActiveRowAction(row.documentNumber);
     setRowActionPos({ top, left });
   };
 
@@ -318,278 +357,303 @@ const DataTable = ({
     selectedRows.length === sortedData.length && sortedData.length > 0;
 
   return (
-    <div className="w-full max-h-52 overflow-x-auto overflow-y-auto scrollbar-hide relative rounded-lg shadow-xl">
-      <table className="w-full min-w-max border border-gray-300 rounded-lg">
-        {/* ================= HEADER ================= */}
-        <thead className="bg-gray-100 sticky top-0 z-10 border p-2">
-          <tr>
-            {columns.map((col, index) => {
-              const isFiltered = filteredColumns.includes(col.accessor);
-              const isDescription = col.accessor === "descriptions";
+    <>
+      <div className="w-full max-h-52 overflow-x-auto overflow-y-auto scrollbar-hide relative rounded-lg shadow-xl">
+        <table className="w-full min-w-max border border-gray-300 rounded-lg">
+          {/* ================= HEADER ================= */}
+          <thead className="bg-gray-100 sticky top-0 z-10 border p-2">
+            <tr>
+              {columns.map((col, index) => {
+                const isFiltered = filteredColumns.includes(col.accessor);
+                const isDescription = col.accessor === "descriptions";
 
-              return (
-                <th
-                  key={index}
-                  className={`relative px-4 py-2 text-left text-xs font-light text-zblue/50 border-b whitespace-nowrap
-                    border-r border-gray-200
-                    ${index === 0 ? "sticky left-0 z-30 bg-gray-100" : ""}
-                    ${index === columns.length - 1 ? "border-r-0" : ""}
-                  `}
-                >
-                  <div className="flex items-center justify-between gap-2 dt-trigger">
-                    {index === 0 && enableSelection ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={toggleSelectAll}
-                          className="focus:outline-none hover:opacity-70 transition-opacity"
-                        >
-                          <span
-                            className={`inline-block w-3 h-3 rounded-full border transition-all ${
-                              isAllSelected
-                                ? "bg-zblue border-gray-400"
-                                : selectedRows.length > 0 && !isAllSelected
-                                  ? "bg-zblue/60 border-gray-400"
-                                  : "bg-white border-gray-400 hover:border-green-500"
-                            }`}
-                          />
-                        </button>
-                        <span>{col.header}</span>
-                      </div>
-                    ) : (
-                      <span>{col.header}</span>
-                    )}
-
-                    {!isDescription && (
-                      <>
-                        {isFiltered ? (
-                          <Filter
-                            className="cursor-pointer text-green-600 hover:text-green-700 transition-colors"
-                            size={9}
-                            onClick={(e) => openDropdown(e, col)}
-                          />
-                        ) : (
-                          <IoIosArrowDown
-                            className="cursor-pointer text-gray-500 hover:text-zgreen transition-colors"
-                            size={14}
-                            onClick={(e) => openDropdown(e, col)}
-                          />
-                        )}
-                      </>
-                    )}
-                  </div>
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-
-        {/* ================= BODY ================= */}
-        <tbody>
-          {!noData ? (
-            sortedData.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className={`hover:bg-gray-50 transition-colors ${
-                  enableSelection && isSelected(row.documentNumber)
-                    ? "bg-zblue/15"
-                    : ""
-                }`}
-              >
-                {columns.map((col, colIndex) => (
-                  <td
-                    key={colIndex}
-                    className={`px-4 py-2 text-xs text-gray-600 border-b whitespace-nowrap
+                return (
+                  <th
+                    key={index}
+                    className={`relative px-4 py-2 text-left text-xs font-light text-zblue/50 border-b whitespace-nowrap
                       border-r border-gray-200
-                      ${colIndex === 0 ? "sticky left-0 bg-white z-10" : ""}
-                      ${colIndex === columns.length - 1 ? "border-r-1" : ""}
+                      ${index === 0 ? "sticky left-0 z-30 bg-gray-100" : ""}
+                      ${index === columns.length - 1 ? "border-r-0" : ""}
                     `}
                   >
-                    {colIndex === 0 && enableSelection ? (
-                      <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2 dt-trigger">
+                      {index === 0 && enableSelection ? (
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => toggleSelection(row.documentNumber)}
+                            onClick={toggleSelectAll}
                             className="focus:outline-none hover:opacity-70 transition-opacity"
                           >
-                            {isSelected(row.documentNumber) ? (
-                              <IoIosCheckmarkCircleOutline
-                                size={16}
-                                className="text-zblue"
-                              />
-                            ) : (
-                              <div className="w-3 h-3 rounded-full border border-gray-400 bg-white hover:border-zblue transition-all" />
-                            )}
+                            <span
+                              className={`inline-block w-3 h-3 rounded-full border transition-all ${
+                                isAllSelected
+                                  ? "bg-zblue border-gray-400"
+                                  : selectedRows.length > 0 && !isAllSelected
+                                    ? "bg-zblue/60 border-gray-400"
+                                    : "bg-white border-gray-400 hover:border-green-500"
+                              }`}
+                            />
                           </button>
-
-                          <span>
-                            {col.render
-                              ? col.render(row[col.accessor], row)
-                              : row[col.accessor]}
-                          </span>
+                          <span>{col.header}</span>
                         </div>
+                      ) : (
+                        <span>{col.header}</span>
+                      )}
 
-                        <button
-                          className="dt-action-trigger p-1 hover:bg-gray-100 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-gray-300"
-                          onClick={(e) => openActionMenu(e, row.documentNumber)}
-                        >
-                          <IoMdMore
-                            size={16}
-                            className="text-gray-500 hover:text-gray-700"
-                          />
-                        </button>
-                      </div>
-                    ) : col.render ? (
-                      col.render(row[col.accessor], row)
-                    ) : (
-                      row[col.accessor]
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                colSpan={columns.length}
-                className="text-center py-6 text-gray-500"
-              >
-                {searchTerm
-                  ? "(There is nothing to show in this search view)"
-                  : "(There is nothing to show in this filter view)"}
-              </td>
+                      {!isDescription && (
+                        <>
+                          {isFiltered ? (
+                            <Filter
+                              className="cursor-pointer text-green-600 hover:text-green-700 transition-colors"
+                              size={9}
+                              onClick={(e) => openDropdown(e, col)}
+                            />
+                          ) : (
+                            <IoIosArrowDown
+                              className="cursor-pointer text-gray-500 hover:text-zgreen transition-colors"
+                              size={14}
+                              onClick={(e) => openDropdown(e, col)}
+                            />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
 
-      {/* ================= COLUMN DROPDOWN ================= */}
-      {dropdownPos && activeColumn && (
-        <div
-          className="dt-dropdown fixed w-48 bg-white border shadow-lg rounded-md z-[9999] overflow-hidden"
-          style={{
-            top: dropdownPos.top,
-            left: dropdownPos.left,
-          }}
-        >
+          {/* ================= BODY ================= */}
+          <tbody>
+            {!noData ? (
+              sortedData.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className={`hover:bg-gray-50 transition-colors ${
+                    enableSelection && isSelected(row.documentNumber)
+                      ? "bg-zblue/15"
+                      : ""
+                  }`}
+                >
+                  {columns.map((col, colIndex) => (
+                    <td
+                      key={colIndex}
+                      className={`px-4 py-2 text-xs text-gray-600 border-b whitespace-nowrap
+                        border-r border-gray-200
+                        ${colIndex === 0 ? "sticky left-0 bg-white z-10" : ""}
+                        ${colIndex === columns.length - 1 ? "border-r-1" : ""}
+                      `}
+                    >
+                      {colIndex === 0 && enableSelection ? (
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                toggleSelection(row.documentNumber)
+                              }
+                              className="focus:outline-none hover:opacity-70 transition-opacity"
+                            >
+                              {isSelected(row.documentNumber) ? (
+                                <IoIosCheckmarkCircleOutline
+                                  size={16}
+                                  className="text-zblue"
+                                />
+                              ) : (
+                                <div className="w-3 h-3 rounded-full border border-gray-400 bg-white hover:border-zblue transition-all" />
+                              )}
+                            </button>
+
+                            <span>
+                              {col.render
+                                ? col.render(row[col.accessor], row)
+                                : row[col.accessor]}
+                            </span>
+                          </div>
+
+                          <button
+                            className="dt-action-trigger p-1 hover:bg-gray-100 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-gray-300"
+                            onClick={(e) => openActionMenu(e, row)}
+                            disabled={isProcessing}
+                          >
+                            <IoMdMore
+                              size={16}
+                              className={`text-gray-500 ${
+                                isProcessing
+                                  ? "opacity-50"
+                                  : "hover:text-gray-700"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      ) : col.render ? (
+                        col.render(row[col.accessor], row)
+                      ) : (
+                        row[col.accessor]
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="text-center py-6 text-gray-500"
+                >
+                  {searchTerm
+                    ? "(There is nothing to show in this search view)"
+                    : "(There is nothing to show in this filter view)"}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        {/* ================= COLUMN DROPDOWN ================= */}
+        {dropdownPos && activeColumn && (
           <div
-            className="px-3 py-2 flex gap-2 items-center hover:bg-gray-50 cursor-pointer transition-colors"
-            onClick={() => {
-              onSort(activeColumn, "asc");
-              setActiveColumn(null);
-              setDropdownPos(null);
+            className="dt-dropdown fixed w-48 bg-white border shadow-lg rounded-md z-[9999] overflow-hidden"
+            style={{
+              top: dropdownPos.top,
+              left: dropdownPos.left,
             }}
           >
-            <AiOutlineSortAscending size={16} />
-            <span className="text-sm">Ascending</span>
-          </div>
+            <div
+              className="px-3 py-2 flex gap-2 items-center hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => {
+                onSort(activeColumn, "asc");
+                setActiveColumn(null);
+                setDropdownPos(null);
+              }}
+            >
+              <AiOutlineSortAscending size={16} />
+              <span className="text-sm">Ascending</span>
+            </div>
 
-          <div
-            className="px-3 py-2 flex gap-2 items-center hover:bg-gray-50 cursor-pointer transition-colors"
-            onClick={() => {
-              onSort(activeColumn, "desc");
-              setActiveColumn(null);
-              setDropdownPos(null);
-            }}
-          >
-            <AiOutlineSortDescending size={16} />
-            <span className="text-sm">Descending</span>
-          </div>
+            <div
+              className="px-3 py-2 flex gap-2 items-center hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => {
+                onSort(activeColumn, "desc");
+                setActiveColumn(null);
+                setDropdownPos(null);
+              }}
+            >
+              <AiOutlineSortDescending size={16} />
+              <span className="text-sm">Descending</span>
+            </div>
 
-          <div className="border-t border-gray-100 my-1" />
+            <div className="border-t border-gray-100 my-1" />
 
-          <div
-            className="px-3 py-2 flex gap-2 items-center hover:bg-gray-50 cursor-pointer transition-colors"
-            onClick={() => {
-              const col = columns.find((c) => c.accessor === activeColumn);
-              onFilterClick(col);
-              setActiveColumn(null);
-              setDropdownPos(null);
-            }}
-          >
-            <TbFilterPlus size={16} />
-            <span className="text-sm">Filter</span>
-          </div>
+            <div
+              className="px-3 py-2 flex gap-2 items-center hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => {
+                const col = columns.find((c) => c.accessor === activeColumn);
+                onFilterClick(col);
+                setActiveColumn(null);
+                setDropdownPos(null);
+              }}
+            >
+              <TbFilterPlus size={16} />
+              <span className="text-sm">Filter</span>
+            </div>
 
-          <div
-            className={`px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors ${
-              !filteredColumns.includes(activeColumn)
-                ? "opacity-50 pointer-events-none"
-                : ""
-            }`}
-            onClick={() => {
-              const col = columns.find((c) => c.accessor === activeColumn);
-              if (col) onClearFilter(col);
-              setActiveColumn(null);
-              setDropdownPos(null);
-            }}
-          >
-            <TbFilterCancel size={16} className="" />
-            <span className="text-sm">Clear Filter</span>
-          </div>
-        </div>
-      )}
-
-      {/* ================= ROW ACTION MENU ================= */}
-      {activeRowAction && (
-        <div
-          ref={actionRef}
-          className="dt-action-menu fixed w-50 bg-white border shadow-lg rounded-md z-[9999] overflow-hidden"
-          style={{
-            top: `${rowActionPos.top}px`,
-            left: `${rowActionPos.left}px`,
-          }}
-        >
-          <div
-            className="px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
-            onClick={() => {
-              const allIds = sortedData.map((r) => r.documentNumber);
-              const isAllSelected = selectedRows.length === sortedData.length;
-
-              if (isAllSelected) {
-                setSelectedRows([]);
-              } else {
-                setSelectedRows(allIds);
-              }
-              setActiveRowAction(null);
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-base">
-                {isAllSelected ? <RiGitClosePullRequestLine /> : <BsUiChecks />}
-              </span>
-              <span>
-                {isAllSelected ? "Remove all selection" : "Select more records"}
-              </span>
+            <div
+              className={`px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors ${
+                !filteredColumns.includes(activeColumn)
+                  ? "opacity-50 pointer-events-none"
+                  : ""
+              }`}
+              onClick={() => {
+                const col = columns.find((c) => c.accessor === activeColumn);
+                if (col) onClearFilter(col);
+                setActiveColumn(null);
+                setDropdownPos(null);
+              }}
+            >
+              <TbFilterCancel size={16} className="" />
+              <span className="text-sm">Clear Filter</span>
             </div>
           </div>
+        )}
 
-          <div className="border-t border-gray-100" />
-
+        {/* ================= ROW ACTION MENU ================= */}
+        {activeRowAction && (
           <div
-            className="px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
-            onClick={() => {
-              toggleSelection(activeRowAction);
-              setActiveRowAction(null);
+            ref={actionRef}
+            className="dt-action-menu fixed w-48 bg-white border shadow-lg rounded-md z-[9999] overflow-hidden"
+            style={{
+              top: `${rowActionPos.top}px`,
+              left: `${rowActionPos.left}px`,
             }}
           >
-            <div className="flex items-center gap-2">
-              <span className="text-base">
-                {isSelected(activeRowAction) ? (
-                  <RiGitClosePullRequestLine />
-                ) : (
-                  <RiListCheck2 />
-                )}
-              </span>
-              <span>
-                {isSelected(activeRowAction)
-                  ? "Remove from selection"
-                  : "Select this record"}
-              </span>
+            {/* View In Edit Mode */}
+            <div
+              className={`px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors text-sm ${
+                isProcessing ? "opacity-50 pointer-events-none" : ""
+              }`}
+              onClick={() => {
+                if (isProcessing) return;
+                const row = sortedData.find(
+                  (r) => r.documentNumber === activeRowAction,
+                );
+                if (row) handleViewEdit(row);
+              }}
+            >
+              <div className="flex items-center gap-2 text-zblue/80">
+                <FiEdit2 size={16} className="" />
+                <span className="text-xs">View In Edit Mode</span>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100" />
+
+            {/* Delete Task */}
+            <div
+              className={`px-3 py-2.5 hover:bg-red-50 cursor-pointer transition-colors text-sm ${
+                isProcessing ? "opacity-50 pointer-events-none" : ""
+              }`}
+              onClick={() => {
+                if (isProcessing) return;
+                const row = sortedData.find(
+                  (r) => r.documentNumber === activeRowAction,
+                );
+                if (row) handleDeleteClick(row);
+              }}
+            >
+              <div className="flex items-center gap-2 text-red-600/50">
+                <FiTrash2 size={16} />
+                <span className="text-xs">Delete Task</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* ================= EDIT TASK MODAL ================= */}
+      {showEditModal && selectedTask && (
+        <EditTask
+          task={selectedTask}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTask(null);
+          }}
+          onUpdate={handleEditComplete}
+        />
       )}
-    </div>
+
+      {/* ================= DELETE CONFIRMATION MODAL ================= */}
+      {showDeleteModal && taskToDelete && (
+        <DeleteConfirmationModal
+          task={taskToDelete}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setTaskToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          isProcessing={isProcessing}
+        />
+      )}
+    </>
   );
 };
 
