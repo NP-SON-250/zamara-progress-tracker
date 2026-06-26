@@ -116,11 +116,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -145,11 +145,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -174,11 +174,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -203,11 +203,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -242,11 +242,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -271,11 +271,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -310,11 +310,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -339,11 +339,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -368,11 +368,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -397,11 +397,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {
@@ -426,11 +426,11 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         dropdown: true,
         submenu: [
           "All Tasks",
-          "Non Started Tasks",
           "Running Tasks",
           "Onhold Tasks",
           "Overdue Tasks",
           "Completed Tasks",
+          "Closed Tasks",
         ],
       },
       {

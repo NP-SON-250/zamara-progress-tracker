@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { updateTask } from "../../../../services/tasksService";
 import { FiX, FiSave } from "react-icons/fi";
 import Button from "../../bottons/Button";
+
 const EditTask = ({ task, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -11,12 +12,13 @@ const EditTask = ({ task, onClose, onUpdate }) => {
     completenessLevel: "",
     startDate: "",
     deadline: "",
-    reasonsForExtending: "", // Add this field
+    reasonsForExtending: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [originalDeadline, setOriginalDeadline] = useState(null);
   const [showReasonsField, setShowReasonsField] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -34,11 +36,14 @@ const EditTask = ({ task, onClose, onUpdate }) => {
           ? new Date(task.startDate).toISOString().split("T")[0]
           : "",
         deadline: taskDeadline,
-        reasonsForExtending: "", // Initialize empty
+        reasonsForExtending: "",
       });
 
       setOriginalDeadline(taskDeadline);
       setShowReasonsField(false);
+
+      // Check if task is completed
+      setIsCompleted(task.status === "Completed");
     }
   }, [task]);
 
@@ -67,6 +72,13 @@ const EditTask = ({ task, onClose, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevent submission if task is completed
+    if (isCompleted) {
+      setError("Cannot edit a completed task");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -97,9 +109,8 @@ const EditTask = ({ task, onClose, onUpdate }) => {
       const response = await updateTask(task._id, updateData);
       console.log("Updated task response:", response.data);
       if (response.success) {
-        // Call onUpdate with the updated task data
         onUpdate(response.data);
-        onClose(); // Close modal after successful update
+        onClose();
       } else {
         setError(response.message || "Failed to update task");
       }
@@ -120,9 +131,11 @@ const EditTask = ({ task, onClose, onUpdate }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between py-1 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-zblue/60 px-6">
-            Edit Task: {task.taskNumber || "Task"}
-          </h3>
+          <div className="flex items-center gap-3 px-6">
+            <h3 className="text-md font-semibold text-zblue/60">
+              Edit Task: {task.taskNumber || "Task"}
+            </h3>
+          </div>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors pr-2"
@@ -151,10 +164,10 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
+                className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                 placeholder="Enter task name"
                 required
-                disabled={loading}
+                disabled={loading || isCompleted}
               />
             </div>
 
@@ -168,9 +181,9 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                 value={formData.description}
                 onChange={handleChange}
                 rows="3"
-                className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
+                className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                 placeholder="Enter task description"
-                disabled={loading}
+                disabled={loading || isCompleted}
               />
             </div>
 
@@ -184,9 +197,9 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                   name="priority"
                   value={formData.priority}
                   onChange={handleChange}
-                  className="w-full px-3 py-[6px] border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
+                  className="w-full px-3 py-[6px] border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                   required
-                  disabled={loading}
+                  disabled={loading || isCompleted}
                 >
                   <option value="">Select Priority</option>
                   <option value="Low">Low</option>
@@ -203,8 +216,8 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full px-3 py-[6px] border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
-                  disabled={loading}
+                  className="w-full px-3 py-[6px] border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={loading || isCompleted}
                 >
                   <option value="">Select Status</option>
                   <option value="Running">Running</option>
@@ -225,8 +238,8 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                 name="completenessLevel"
                 value={formData.completenessLevel}
                 onChange={handleChange}
-                className="w-full px-3 py-[6px] border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
-                disabled={loading}
+                className="w-full px-3 py-[6px] border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={loading || isCompleted}
               >
                 <option value="">Select Level</option>
                 <option value="L1">L1 - 0%</option>
@@ -249,9 +262,9 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
+                  className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                   required
-                  disabled={loading}
+                  disabled={loading || isCompleted}
                 />
               </div>
 
@@ -264,15 +277,15 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                   name="deadline"
                   value={formData.deadline}
                   onChange={handleChange}
-                  className={`w-full px-3 py-1 border rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen border-zblue/20`}
+                  className="w-full px-3 py-1 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                   required
-                  disabled={loading}
+                  disabled={loading || isCompleted}
                 />
               </div>
             </div>
 
             {/* Reasons for Extending - Conditionally shown */}
-            {showReasonsField && (
+            {showReasonsField && !isCompleted && (
               <div className="">
                 <label className="block text-sm font-medium text-zblue/60 mb-1">
                   Reasons for Extending Deadline *
@@ -282,10 +295,10 @@ const EditTask = ({ task, onClose, onUpdate }) => {
                   value={formData.reasonsForExtending}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full px-3 py-2 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen"
+                  className="w-full px-3 py-2 border border-zblue/20 rounded-md focus:outline-none focus:border focus:border-zgreen hover:border-zgreen disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                   placeholder="Please explain why the deadline needs to be extended..."
                   required={showReasonsField}
-                  disabled={loading}
+                  disabled={loading || isCompleted}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Provide detailed reasons for the deadline extension
@@ -299,13 +312,13 @@ const EditTask = ({ task, onClose, onUpdate }) => {
         <div className="flex justify-end gap-3 px-6 py-2 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <Button
             type="button"
-            color="zblue"
+            color={isCompleted ? "gray" : "zblue"}
             onClick={handleSubmit}
-            disabled={loading}
-            className=""
+            disabled={loading || isCompleted}
+            className={isCompleted ? "opacity-50 cursor-not-allowed" : ""}
           >
             <FiSave />
-            {loading ? "Saving..." : "Save"}
+            {loading ? "Saving..." : isCompleted ? "Locked" : "Save"}
           </Button>
         </div>
       </div>
