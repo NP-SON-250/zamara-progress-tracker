@@ -72,8 +72,6 @@ const EditTask = ({ task, onClose, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Prevent submission if task is completed
     if (isCompleted) {
       setError("Cannot edit a completed task");
       return;

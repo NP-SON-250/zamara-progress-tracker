@@ -124,7 +124,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "pension employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -153,7 +153,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "finance employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -182,7 +182,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "human resource employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -211,7 +211,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "it employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -250,7 +250,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "procurement employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -279,7 +279,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "administration employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -318,7 +318,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "claims employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -347,7 +347,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "social employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -376,7 +376,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "techinical employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -405,7 +405,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "actuarial employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",
@@ -434,7 +434,7 @@ const DepartmentMenu = ({ onSubMenuSelect }) => {
         ],
       },
       {
-        title: "business development employees",
+        title: "employees",
         dropdown: true,
         submenu: [
           "All Employees",

@@ -1,19 +1,39 @@
+// AllUsers.jsx
 import React, { useState, useEffect, useMemo } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import DataTable from "../../components/ui/tables/DataTable";
 import FilterPane from "../../components/ui/models/FilterPane";
-import { IoMdClose } from "react-icons/io";
-import { CiEdit, CiFilter } from "react-icons/ci";
+import { IoIosCloudDone, IoMdClose, IoMdDownload } from "react-icons/io";
+import { CiEdit, CiSettings, CiFilter } from "react-icons/ci";
+import { FiCalendar } from "react-icons/fi";
 import { GoTasklist } from "react-icons/go";
 import { RiExportLine } from "react-icons/ri";
-import { getTasksByDepartment } from "../../services/tasksService";
+import { GiProgression } from "react-icons/gi";
+import { FaHandHoldingHand } from "react-icons/fa6";
+import { FcSalesPerformance, FcExpired } from "react-icons/fc";
 import Button from "../../components/ui/bottons/Button";
 import api from "../../api/axios";
-import NewTasks from "../../components/ui/models/tasks/NewTasks";
-import ExportOptions from "../../components/ui/models/tasks/ExportOptions";
+import NewUser from "../../components/ui/models/employees/NewUsers";
+import EditUser from "../../components/ui/models/employees/EditUser";
+import ExportOptions from "../../components/ui/models/employees/ExportOptions";
+import { getUsersByDepartment } from "../../services/userService";
 
-const OnholdTasks = () => {
+const COLORS = ["#292B4D", "#1E3A8A80", "#D4AF3780", "#14532D80", "#292B4D"];
+
+const AllUsers = () => {
   //====States management====
-  const [tasksData, setTasksData] = useState(null);
+  const [usersData, setUsersData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [departmentName, setDepartmentName] = useState("");
@@ -30,8 +50,10 @@ const OnholdTasks = () => {
   const [showFieldDropdown, setShowFieldDropdown] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
 
-  //====Create Task====
-  const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+  //====User Modals====
+  const [showNewUserModal, setShowNewUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   //====Export Options====
   const [showExportOptions, setShowExportOptions] = useState(false);
@@ -132,8 +154,8 @@ const OnholdTasks = () => {
     }
   };
 
-  //====Fetch department tasks====
-  const fetchDepartmentTasks = async () => {
+  //====Fetch department users====
+  const fetchDepartmentUsers = async () => {
     try {
       setLoading(true);
       const deptName = getDepartmentFromURL();
@@ -152,43 +174,63 @@ const OnholdTasks = () => {
 
       setDepartmentId(deptId);
 
-      const response = await getTasksByDepartment(deptId);
-      if (response.success) {
-        // Filter tasks to only include On Hold status
-        const allTasks = response.data.tasks || [];
-        const onHoldTasks = allTasks.filter(
-          (task) => task.status === "On Hold",
-        );
-
-        // Update tasksData with filtered tasks
-        setTasksData({
-          ...response.data,
-          tasks: onHoldTasks,
-          // Update cards with filtered counts
-          cards: {
-            ...response.data.cards,
-            totalTasks: onHoldTasks.length,
-            onHoldTasks: onHoldTasks.length,
-          },
-        });
+      const response = await getUsersByDepartment(deptId);
+      if (response.status === "200") {
+        setUsersData(response);
       } else {
-        setError("Failed to fetch tasks");
+        setError("Failed to fetch users");
       }
     } catch (error) {
-      console.error("Error fetching department tasks:", error);
-      setError(error.message || "Failed to fetch tasks");
+      console.error("Error fetching department users:", error);
+      setError(error.message || "Failed to fetch users");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDepartmentTasks();
+    fetchDepartmentUsers();
   }, []);
 
   //====Destructured variables====
-  const cards = tasksData?.cards || {};
-  const performance = tasksData?.performance || 0;
+  const users = usersData?.data || [];
+  const totalUsers = usersData?.count || 0;
+
+  // Calculate statistics for cards
+  const activeUsers = users.filter((user) => user.status === "Active").length;
+  const adminUsers = users.filter((user) => user.role === "Admin").length;
+
+  // Calculate pie chart data (user roles distribution)
+  const pieChartData = useMemo(() => {
+    const roleCount = {};
+    users.forEach((user) => {
+      const role = user.role || "User";
+      roleCount[role] = (roleCount[role] || 0) + 1;
+    });
+    return Object.entries(roleCount).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  }, [users]);
+
+  // Calculate bar chart data (users by status)
+  const barChartData = useMemo(() => {
+    const statusCount = {};
+    users.forEach((user) => {
+      const status = user.status || "Inactive";
+      statusCount[status] = (statusCount[status] || 0) + 1;
+    });
+    return Object.entries(statusCount).map(([status, count]) => ({
+      status,
+      count,
+    }));
+  }, [users]);
+
+  // Calculate performance metric (percentage of active users)
+  const performance = useMemo(() => {
+    if (totalUsers === 0) return 0;
+    return Math.round((activeUsers / totalUsers) * 100);
+  }, [totalUsers, activeUsers]);
 
   //====Handle Sort====
   const handleSort = (accessor, direction) => {
@@ -258,17 +300,38 @@ const OnholdTasks = () => {
     setShowFilterPane(true);
   };
 
-  //====Handle Task Update====
-  const handleTaskUpdate = () => {
+  //====Handle User Update====
+  const handleUserUpdate = async (updatedUser) => {
+    setUsersData((prev) => ({
+      ...prev,
+      data: prev.data.map((user) =>
+        user._id === updatedUser._id ? updatedUser : user,
+      ),
+    }));
     setNotification({
-      message: "Task updated!",
+      message: "User updated!",
       type: "success",
     });
+    await fetchDepartmentUsers();
+  };
+
+  //====Handle User Creation====
+  const handleUserCreated = (newUser) => {
+    setUsersData((prev) => ({
+      ...prev,
+      data: [...prev.data, newUser],
+      count: prev.count + 1,
+    }));
+    setNotification({
+      message: "User created successfully!",
+      type: "success",
+    });
+    fetchDepartmentUsers();
   };
 
   //====Handle Full Report====
   const handleFullReport = () => {
-    if (!tableData || tableData.length === 0) {
+    if (!users || users.length === 0) {
       setNotification({
         message: "No data available for full report",
         type: "error",
@@ -277,37 +340,23 @@ const OnholdTasks = () => {
     }
 
     // Prepare the data with all fields
-    const reportData = tableData.map((row) => ({
-      "TASK NUMBER": row.taskNumber || "-",
-      "TASK NAME": row.name || "-",
-      DESCRIPTION: row.description || "-",
-      STATUS: row.status || "-",
-      PRIORITY: row.priority || "-",
-      "COMPLETENESS LEVEL": row.completenessLevel || "-",
-      PROGRESS: `${row.progress || 0}%`,
-      "ASSIGNED TO": Array.isArray(row.asignedTo)
-        ? row.asignedTo.map((user) => user.fullname || user).join(", ")
-        : row.asignedTo || "-",
-      "START DATE": row.startDate
-        ? new Date(row.startDate).toLocaleDateString()
+    const reportData = users.map((user) => ({
+      "FULL NAME": user.fullname || "-",
+      EMAIL: user.email || "-",
+      ROLE: user.role || "-",
+      STATUS: user.status || "-",
+      DEPARTMENTS: Array.isArray(user.departments)
+        ? user.departments
+            .map((dept) => (typeof dept === "object" ? dept.name : dept))
+            .join(", ")
         : "-",
-      DEADLINE:
-        row.deadline || row.endDate
-          ? new Date(row.deadline || row.endDate).toLocaleDateString()
-          : "-",
-      "COMPLETED ON": row.completedOn
-        ? new Date(row.completedOn).toLocaleDateString()
+      "ASSIGNED TASKS": user.assignedTasks?.length || 0,
+      "REGISTERED ON": user.registeredOn
+        ? new Date(user.registeredOn).toLocaleDateString()
         : "-",
-      "MANAGER COMMENTS":
-        Array.isArray(row.managerComment) && row.managerComment.length > 0
-          ? row.managerComment.join(", ")
-          : "-",
-      "REASONS FOR EXTENDING":
-        row.reasonsForExtending && row.reasonsForExtending !== "null"
-          ? row.reasonsForExtending
-          : "-",
-      OVERDUE: row.overdued ? "Yes" : "No",
-      "EXTENDED DEADLINE": row.extendedDeadline ? "Yes" : "No",
+      "LAST LOGIN": user.lastLogin
+        ? new Date(user.lastLogin).toLocaleDateString()
+        : "-",
     }));
 
     setFullReportData(reportData);
@@ -318,90 +367,89 @@ const OnholdTasks = () => {
   const columns = useMemo(
     () => [
       {
-        accessor: "taskNumber",
-        header: "TASK NUMBER",
+        accessor: "fullname",
+        header: "FULL NAME",
         type: "text",
+        render: (value, row) => (
+          <div className="flex items-center gap-2">
+            <span>{value || "-"}</span>
+          </div>
+        ),
       },
       {
-        accessor: "name",
-        header: "TASK NAME",
+        accessor: "email",
+        header: "EMAIL",
         type: "text",
+        render: (value) => value || "-",
+      },
+      {
+        accessor: "role",
+        header: "ROLE",
+        type: "select",
+        options: ["Admin", "User"],
+        render: (value) => {
+          const roleColors = {
+            Admin: "text-purple-700",
+            User: "text-blue-700",
+          };
+          return (
+            <span
+              className={`px-2 py-1 text-xs font-medium ${roleColors[value] || "bg-gray-100 text-gray-700"}`}
+            >
+              {value || "User"}
+            </span>
+          );
+        },
       },
       {
         accessor: "status",
         header: "STATUS",
         type: "select",
-        options: ["Running", "On Hold", "Completed", "Overdue", "Closed"],
+        options: ["Active", "Inactive"],
         render: (value) => {
           const statusColors = {
-            Running: "text-green-600",
-            "On Hold": "text-yellow-600",
-            Completed: "text-blue-600",
-            Overdue: "text-red-600",
-            Closed: "text-gray-600",
+            Active: "text-zgreen",
+            Inactive: "text-gray-700",
           };
           return (
-            <span className={statusColors[value] || ""}>{value || "-"}</span>
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[value] || "bg-gray-100 text-gray-700"}`}
+            >
+              {value || "Inactive"}
+            </span>
           );
         },
       },
       {
-        accessor: "priority",
-        header: "PRIORITY",
-        type: "select",
-        options: ["Low", "Medium", "High"],
-        render: (value) => {
-          const priorityColors = {
-            Low: "text-green-600",
-            Medium: "text-yellow-600",
-            High: "text-red-600",
-          };
-          return (
-            <span className={priorityColors[value] || ""}>{value || "-"}</span>
-          );
-        },
-      },
-      {
-        accessor: "asignedTo",
-        header: "ASSIGNED TO",
+        accessor: "departments",
+        header: "DEPARTMENTS",
         type: "text",
         render: (value) => {
           if (Array.isArray(value)) {
-            return value.map((user) => user.fullname || user).join(", ");
+            return value
+              .map((dept) => (typeof dept === "object" ? dept.name : dept))
+              .join(", ");
           }
-          return value || "-";
+          return "-";
         },
       },
       {
-        accessor: "startDate",
-        header: "START DATE",
-        type: "date",
-        render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
-      },
-      {
-        accessor: "deadline",
-        header: "DEADLINE",
-        type: "date",
-        render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
-      },
-      {
-        accessor: "progress",
-        header: "PROGRESS",
+        accessor: "assignedTasks",
+        header: "ASSIGNED TASKS",
         type: "text",
-        render: (value) => {
-          const progress = parseInt(value) || 0;
-          return (
-            <div className="flex items-center gap-2">
-              <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-zblue rounded-full transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <span>{progress}%</span>
-            </div>
-          );
-        },
+        render: (value) => value?.length || 0,
+      },
+      {
+        accessor: "registeredOn",
+        header: "REGISTERED ON",
+        type: "date",
+        render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
+      },
+      {
+        accessor: "lastLogin",
+        header: "LAST LOGIN",
+        type: "date",
+        render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
       },
     ],
     [],
@@ -409,16 +457,13 @@ const OnholdTasks = () => {
 
   //====Prepare table data====
   const tableData = useMemo(() => {
-    if (!tasksData?.tasks) return [];
-    return tasksData.tasks.map((task) => ({
-      ...task,
-      documentNumber: task._id || task.taskNumber,
-      asignedTo: task.asignedTo || [],
-      startDate: task.startDate,
-      deadline: task.endDate || task.deadline,
-      progress: task.progress || "0",
+    if (!users) return [];
+    return users.map((user) => ({
+      ...user,
+      documentNumber: user._id || user.email,
+      assignedTasks: user.assignedTasks || [],
     }));
-  }, [tasksData]);
+  }, [users]);
 
   //====Handle Export====
   const handleExport = () => {
@@ -427,15 +472,7 @@ const OnholdTasks = () => {
 
   //====Handle New====
   const handleNew = () => {
-    setShowNewTaskModal(true);
-  };
-
-  const handleTaskCreated = (newTask) => {
-    fetchDepartmentTasks();
-    setNotification({
-      message: "Task created successfully!",
-      type: "success",
-    });
+    setShowNewUserModal(true);
   };
 
   //====Available fields for filtering====
@@ -459,7 +496,7 @@ const OnholdTasks = () => {
   );
 
   //====Check if we have data====
-  const hasData = tasksData && tasksData.tasks && tasksData.tasks.length > 0;
+  const hasData = users && users.length > 0;
 
   //====Full Report Preview Modal====
   const FullReportPreviewModal = () => {
@@ -474,7 +511,7 @@ const OnholdTasks = () => {
           <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10 rounded-t-lg">
             <div>
               <h2 className="text-xl font-bold text-zblue font-museo">
-                {departmentName} Department - On Hold Tasks Report
+                {departmentName} Department - Users Report
               </h2>
             </div>
             <div className="flex items-center gap-3">
@@ -540,34 +577,6 @@ const OnholdTasks = () => {
                 </table>
               </div>
             </div>
-
-            {/* Summary Footer */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-xs text-gray-500 font-museo">Total Tasks</p>
-                <p className="text-lg font-bold text-zblue font-museo">
-                  {fullReportData.length}
-                </p>
-              </div>
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-xs text-gray-500 font-museo">Department</p>
-                <p className="text-lg font-bold text-zblue font-museo">
-                  {departmentName}
-                </p>
-              </div>
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-xs text-gray-500 font-museo">Performance</p>
-                <p className="text-lg font-bold text-green-600 font-museo">
-                  {performance}%
-                </p>
-              </div>
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <p className="text-xs text-gray-500 font-museo">Generated On</p>
-                <p className="text-sm font-semibold text-gray-700 font-museo">
-                  {new Date().toLocaleString()}
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Preview Footer */}
@@ -588,7 +597,7 @@ const OnholdTasks = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-zblue"></div>
-            <p className="text-gray-500">Loading on hold tasks...</p>
+            <p className="text-gray-500">Loading users...</p>
           </div>
         </div>
       </div>
@@ -603,7 +612,7 @@ const OnholdTasks = () => {
             <p className="text-red-600 font-medium">Error loading data</p>
             <p className="text-red-500 text-sm mt-2">{error}</p>
             <button
-              onClick={fetchDepartmentTasks}
+              onClick={fetchDepartmentUsers}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
             >
               Retry
@@ -632,10 +641,7 @@ const OnholdTasks = () => {
       {/* Welcome and Actions */}
       <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between px-5 py-2 border-b border-gray-200 gap-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-md font-bold text-zblue">On Hold Tasks</h2>
-          <span className="text-xs text-gray-500">
-            ({hasData ? tasksData.tasks.length : 0} tasks)
-          </span>
+          <h2 className="text-sm font-bold text-zblue">All Users</h2>
         </div>
         <div className="flex md:gap-2 gap-6">
           <div className="">
@@ -681,13 +687,12 @@ const OnholdTasks = () => {
           <div className="flex-1 min-h-[200px] border border-gray-200 rounded-md flex flex-col">
             <div className="md:flex-shrink-0 flex md:flex-row flex-col justify-between p-2 border-b gap-4 border-gray-200">
               <p className="text-xs font-bold text-zblue/60">
-                On Hold Task List{" "}
-                {hasData ? `(${tasksData.tasks.length} tasks)` : ""}
+                User List {hasData ? `(${users.length} users)` : ""}
               </p>
               <div className="flex justify-between gap-2">
                 <input
                   type="text"
-                  placeholder="Search on hold tasks..."
+                  placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="border md:text-xs text-md md:w-[60%] w-[65%] border-gray-300 rounded md:px-3 px-1 hover:border-zgreen focus:outline-none focus:border-zgreen h-7"
@@ -699,14 +704,14 @@ const OnholdTasks = () => {
                   onClick={handleNew}
                 >
                   <GoTasklist />
-                  Add Task
+                  Add User
                 </Button>
               </div>
             </div>
             <div className="flex-1 overflow-hidden p-2">
               {!hasData ? (
                 <div className="flex items-center justify-center h-full text-gray-500">
-                  <p>No on hold tasks found for {departmentName} department</p>
+                  <p>No users found for {departmentName} department</p>
                 </div>
               ) : (
                 <div className="h-full overflow-auto scrollbar-hide">
@@ -725,9 +730,12 @@ const OnholdTasks = () => {
                     enableSelection={true}
                     selectedRows={selectedRows}
                     setSelectedRows={setSelectedRows}
-                    onRefresh={fetchDepartmentTasks}
-                    entityType="task"
-                    onTaskUpdate={handleTaskUpdate}
+                    onRefresh={fetchDepartmentUsers}
+                    entityType="user"
+                    onUserUpdate={(user) => {
+                      setSelectedUser(user);
+                      setShowEditUserModal(true);
+                    }}
                   />
                 </div>
               )}
@@ -755,12 +763,21 @@ const OnholdTasks = () => {
         </div>
       )}
 
-      {/* New Task Modal */}
-      <NewTasks
-        isOpen={showNewTaskModal}
-        onClose={() => setShowNewTaskModal(false)}
-        departmentId={departmentId}
-        onTaskCreated={handleTaskCreated}
+      {/* New User Modal */}
+      <NewUser
+        isOpen={showNewUserModal}
+        onClose={() => setShowNewUserModal(false)}
+        onUserCreated={handleUserCreated}
+      />
+
+      {/* Edit User Modal */}
+      <EditUser
+        user={selectedUser}
+        onClose={() => {
+          setShowEditUserModal(false);
+          setSelectedUser(null);
+        }}
+        onUpdate={handleUserUpdate}
       />
 
       {/* Full Report Preview Modal */}
@@ -769,4 +786,4 @@ const OnholdTasks = () => {
   );
 };
 
-export default OnholdTasks;
+export default AllUsers;

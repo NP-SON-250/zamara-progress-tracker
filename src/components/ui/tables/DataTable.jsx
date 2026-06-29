@@ -12,9 +12,10 @@ import { Filter } from "lucide-react";
 import { TbFilterPlus, TbFilterCancel } from "react-icons/tb";
 import { RiListCheck2, RiGitClosePullRequestLine } from "react-icons/ri";
 import { BsUiChecks } from "react-icons/bs";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2 } from "react-icons/fi";
+// Import both task and user modals
 import EditTask from "../models/tasks/EditTask";
-import DeleteConfirmationModal from "../models/tasks/DeleteConfirmationModal";
+import EditUser from "../models/employees/EditUser";
 
 const DataTable = ({
   columns = [],
@@ -32,17 +33,19 @@ const DataTable = ({
   selectedRows = [],
   setSelectedRows = () => {},
   onRefresh,
+  // Task specific props
   onTaskUpdate,
-  onTaskDelete,
+  // User specific props
+  onUserUpdate,
+  // Generic props
+  onEdit,
+  entityType = "task", // "task" or "user"
 }) => {
   const [dropdownPos, setDropdownPos] = useState(null);
   const [activeRowAction, setActiveRowAction] = useState(null);
   const [rowActionPos, setRowActionPos] = useState({ top: 0, left: 0 });
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const actionRef = useRef(null);
 
@@ -130,13 +133,18 @@ const DataTable = ({
       const valA = a[accessor];
       const valB = b[accessor];
 
-      if (accessor === "startDate" || accessor === "deadline") {
+      if (
+        accessor === "startDate" ||
+        accessor === "deadline" ||
+        accessor === "registeredOn" ||
+        accessor === "lastLogin"
+      ) {
         const dateA = valA ? new Date(valA).getTime() : 0;
         const dateB = valB ? new Date(valB).getTime() : 0;
         return direction === "asc" ? dateA - dateB : dateB - dateA;
       }
 
-      if (accessor === "progress") {
+      if (accessor === "progress" || accessor === "assignedTasks") {
         const numA = parseInt(valA) || 0;
         const numB = parseInt(valB) || 0;
         return direction === "asc" ? numA - numB : numB - numA;
@@ -195,48 +203,33 @@ const DataTable = ({
   };
 
   // ======================
-  // TASK ACTION HANDLERS
+  // ITEM ACTION HANDLERS
   // ======================
   const handleViewEdit = (row) => {
-    setSelectedTask(row);
+    setSelectedItem(row);
     setShowEditModal(true);
     setActiveRowAction(null);
   };
 
-  const handleDeleteClick = (row) => {
-    setTaskToDelete(row);
-    setShowDeleteModal(true);
-    setActiveRowAction(null);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (taskToDelete && onTaskDelete && !isProcessing) {
-      setIsProcessing(true);
-      try {
-        // Call the delete function from parent
-        await onTaskDelete(taskToDelete._id);
-        setShowDeleteModal(false);
-        setTaskToDelete(null);
-        // Refresh the data from server after successful delete
-        if (onRefresh) {
-          await onRefresh();
-        }
-      } catch (error) {
-        console.error("Error in delete confirmation:", error);
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-  };
-
-  const handleEditComplete = async () => {
+  // Generic update handler
+  const handleEditComplete = async (updatedItem) => {
     setShowEditModal(false);
-    setSelectedTask(null);
+    setSelectedItem(null);
+
+    // Call the appropriate update handler
+    if (entityType === "task" && onTaskUpdate) {
+      await onTaskUpdate(updatedItem);
+    } else if (entityType === "user" && onUserUpdate) {
+      await onUserUpdate(updatedItem);
+    } else if (onEdit) {
+      await onEdit(updatedItem);
+    }
 
     if (onRefresh) {
       await onRefresh();
     }
   };
+
   // ======================
   // ROW ACTION MENU WITH IMPROVED POSITIONING
   // ======================
@@ -245,7 +238,7 @@ const DataTable = ({
 
     const buttonRect = e.currentTarget.getBoundingClientRect();
     const menuWidth = 180;
-    const menuHeight = 120;
+    const menuHeight = 60; // Reduced height since we removed delete option
     const spacing = 8;
     const viewportPadding = 10;
 
@@ -355,6 +348,22 @@ const DataTable = ({
 
   const isAllSelected =
     selectedRows.length === sortedData.length && sortedData.length > 0;
+
+  // Get the appropriate labels based on entity type
+  const getEntityLabels = () => {
+    if (entityType === "user") {
+      return {
+        edit: "View In Edit Mode",
+        editModal: "Edit User",
+      };
+    }
+    return {
+      edit: "View In Edit Mode",
+      editModal: "Edit Task",
+    };
+  };
+
+  const labels = getEntityLabels();
 
   return (
     <>
@@ -473,15 +482,10 @@ const DataTable = ({
                           <button
                             className="dt-action-trigger p-1 hover:bg-gray-100 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-gray-300"
                             onClick={(e) => openActionMenu(e, row)}
-                            disabled={isProcessing}
                           >
                             <IoMdMore
                               size={16}
-                              className={`text-gray-500 ${
-                                isProcessing
-                                  ? "opacity-50"
-                                  : "hover:text-gray-700"
-                              }`}
+                              className="text-gray-500 hover:text-gray-700"
                             />
                           </button>
                         </div>
@@ -580,7 +584,7 @@ const DataTable = ({
         {activeRowAction && (
           <div
             ref={actionRef}
-            className="dt-action-menu fixed w-48 bg-white border shadow-lg rounded-md z-[9999] overflow-hidden"
+            className="dt-action-menu fixed ml-12 w-36 bg-white border shadow-lg rounded-md z-[9999] overflow-hidden"
             style={{
               top: `${rowActionPos.top}px`,
               left: `${rowActionPos.left}px`,
@@ -588,11 +592,8 @@ const DataTable = ({
           >
             {/* View In Edit Mode */}
             <div
-              className={`px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors text-sm ${
-                isProcessing ? "opacity-50 pointer-events-none" : ""
-              }`}
+              className="p-1 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
               onClick={() => {
-                if (isProcessing) return;
                 const row = sortedData.find(
                   (r) => r.documentNumber === activeRowAction,
                 );
@@ -601,58 +602,35 @@ const DataTable = ({
             >
               <div className="flex items-center gap-2 text-zblue/80">
                 <FiEdit2 size={16} className="" />
-                <span className="text-xs">View In Edit Mode</span>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100" />
-
-            {/* Delete Task */}
-            <div
-              className={`px-3 py-2.5 hover:bg-red-50 cursor-pointer transition-colors text-sm ${
-                isProcessing ? "opacity-50 pointer-events-none" : ""
-              }`}
-              onClick={() => {
-                if (isProcessing) return;
-                const row = sortedData.find(
-                  (r) => r.documentNumber === activeRowAction,
-                );
-                if (row) handleDeleteClick(row);
-              }}
-            >
-              <div className="flex items-center gap-2 text-red-600/50">
-                <FiTrash2 size={16} />
-                <span className="text-xs">Delete Task</span>
+                <span className="text-xs">{labels.edit}</span>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ================= EDIT TASK MODAL ================= */}
-      {showEditModal && selectedTask && (
-        <EditTask
-          task={selectedTask}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedTask(null);
-          }}
-          onUpdate={handleEditComplete}
-        />
-      )}
-
-      {/* ================= DELETE CONFIRMATION MODAL ================= */}
-      {showDeleteModal && taskToDelete && (
-        <DeleteConfirmationModal
-          task={taskToDelete}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setTaskToDelete(null);
-          }}
-          onConfirm={handleDeleteConfirm}
-          isProcessing={isProcessing}
-        />
-      )}
+      {/* ================= EDIT MODAL ================= */}
+      {showEditModal &&
+        selectedItem &&
+        (entityType === "task" ? (
+          <EditTask
+            task={selectedItem}
+            onClose={() => {
+              setShowEditModal(false);
+              setSelectedItem(null);
+            }}
+            onUpdate={handleEditComplete}
+          />
+        ) : entityType === "user" ? (
+          <EditUser
+            user={selectedItem}
+            onClose={() => {
+              setShowEditModal(false);
+              setSelectedItem(null);
+            }}
+            onUpdate={handleEditComplete}
+          />
+        ) : null)}
     </>
   );
 };

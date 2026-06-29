@@ -5,7 +5,7 @@ import { IoMdClose } from "react-icons/io";
 import { CiEdit, CiFilter } from "react-icons/ci";
 import { GoTasklist } from "react-icons/go";
 import { RiExportLine } from "react-icons/ri";
-import { getTasksByDepartment, deleteTask } from "../../services/tasksService";
+import { getTasksByDepartment } from "../../services/tasksService";
 import Button from "../../components/ui/bottons/Button";
 import api from "../../api/axios";
 import NewTasks from "../../components/ui/models/tasks/NewTasks";
@@ -264,22 +264,6 @@ const RunningTasks = () => {
       message: "Task updated!",
       type: "success",
     });
-  };
-
-  //====Handle Task Delete====
-  const handleTaskDelete = async (taskId) => {
-    const response = await deleteTask(taskId);
-
-    if (response.success) {
-      setNotification({
-        message: "Task deleted!",
-        type: "success",
-      });
-
-      return response;
-    }
-
-    throw new Error(response.message);
   };
 
   //====Handle Full Report====
@@ -648,8 +632,7 @@ const RunningTasks = () => {
       {/* Welcome and Actions */}
       <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between px-5 py-2 border-b border-gray-200 gap-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold text-zblue"> Running Tasks
-          </h2>
+          <h2 className="text-sm font-bold text-zblue"> Running Tasks</h2>
         </div>
         <div className="flex md:gap-2 gap-6">
           <div className="">
@@ -740,8 +723,8 @@ const RunningTasks = () => {
                     selectedRows={selectedRows}
                     setSelectedRows={setSelectedRows}
                     onRefresh={fetchDepartmentTasks}
+                    entityType="task"
                     onTaskUpdate={handleTaskUpdate}
-                    onTaskDelete={handleTaskDelete}
                   />
                 </div>
               )}

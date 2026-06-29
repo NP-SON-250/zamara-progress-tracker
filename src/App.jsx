@@ -16,13 +16,16 @@ import DepartmentProtect from "./protectors/DepartmentProtect";
 import Topbar from "./components/ui/models/menu/Topbar";
 import DepartmentMenu from "./components/ui/models/menu/DepartmentMenu";
 
-//======= Pension Tasks=======//
+//=======Tasks=======//
 import AllTasks from "./pages/tasks/AllTasks";
 import ClosedTasks from "./pages/tasks/ClosedTasks";
 import RunningTasks from "./pages/tasks/RunningTasks";
 import OnholdTasks from "./pages/tasks/OnholdTasks";
 import OverdueTasks from "./pages/tasks/OverdueTasks";
 import CompletedTasks from "./pages/tasks/CompletedTasks";
+
+//=======Employees=======//
+import AllUsers from "./pages/employees/AllUsers";
 
 // Main Layout Component that includes Topbar and DepartmentMenu
 const MainLayout = ({ children }) => {
@@ -61,25 +64,17 @@ const DepartmentContent = () => {
   const componentMap = {
     // ============ HR - Tasks ============
     "/hr/tasks/all-tasks": <AllTasks />,
-    "/hr/tasks/running-tasks": <div className="">Coming Soon</div>,
-    "/hr/tasks/onhold-tasks": <div className="">Coming Soon</div>,
-    "/hr/tasks/overdue-tasks": <div className="">Coming Soon</div>,
-    "/hr/tasks/completed-tasks": <div className="">Coming Soon</div>,
-    "/hr/tasks/closed-tasks": <div className="">Closed Tasks Soon</div>,
+    "/hr/tasks/running-tasks": <RunningTasks />,
+    "/hr/tasks/onhold-tasks": <OnholdTasks />,
+    "/hr/tasks/overdue-tasks": <OverdueTasks />,
+    "/hr/tasks/completed-tasks": <CompletedTasks />,
+    "/hr/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ HR - Employees ============
-    "/hr/human-resource-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/hr/human-resource-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/hr/human-resource-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/hr/human-resource-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/hr/employees/all-employees": <AllUsers />,
+    "/hr/employees/free-employees": <div className="">Coming Soon</div>,
+    "/hr/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/hr/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ HR - More Options ============
     "/hr/more-options/re-assign-task": <div className="">Coming Soon</div>,
@@ -88,25 +83,17 @@ const DepartmentContent = () => {
 
     // ============ Finance - Tasks ============
     "/finance/tasks/all-tasks": <AllTasks />,
-    "/finance/tasks/running-tasks": <div className="">Coming Soon</div>,
-    "/finance/tasks/onhold-tasks": <div className="">Coming Soon</div>,
-    "/finance/tasks/overdue-tasks": <div className="">Coming Soon</div>,
-    "/finance/tasks/completed-tasks": <div className="">Coming Soon</div>,
-    "/finance/tasks/closed-tasks": <div className="">Closed Tasks Soon</div>,
+    "/finance/tasks/running-tasks": <RunningTasks />,
+    "/finance/tasks/onhold-tasks": <OnholdTasks />,
+    "/finance/tasks/overdue-tasks": <OverdueTasks />,
+    "/finance/tasks/completed-tasks": <CompletedTasks />,
+    "/finance/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ Finance - Employees ============
-    "/finance/finance-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/finance/finance-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/finance/finance-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/finance/finance-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/finance/employees/all-employees": <AllUsers />,
+    "/finance/employees/free-employees": <div className="">Coming Soon</div>,
+    "/finance/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/finance/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ Finance - More Options ============
     "/finance/more-options/re-assign-task": <div className="">Coming Soon</div>,
@@ -122,10 +109,10 @@ const DepartmentContent = () => {
     "/it/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ IT - Employees ============
-    "/it/it-employees/all-employees": <div className="">Coming Soon</div>,
-    "/it/it-employees/free-employees": <div className="">Coming Soon</div>,
-    "/it/it-employees/busy-employees": <div className="">Coming Soon</div>,
-    "/it/it-employees/multi-employees": <div className="">Coming Soon</div>,
+    "/it/employees/all-employees": <AllUsers />,
+    "/it/employees/free-employees": <div className="">Coming Soon</div>,
+    "/it/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/it/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ IT - System Settings ============
     "/it/system-settings/create-user": <div className="">Coming Soon</div>,
@@ -149,18 +136,10 @@ const DepartmentContent = () => {
     "/pension/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ Pension - Employees ============
-    "/pension/pension-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/pension/pension-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/pension/pension-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/pension/pension-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/pension/employees/all-employees": <AllUsers />,
+    "/pension/employees/free-employees": <div className="">Coming Soon</div>,
+    "/pension/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/pension/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ Pension - More Options ============
     "/pension/more-options/re-assign-task": <div className="">Coming Soon</div>,
@@ -176,18 +155,10 @@ const DepartmentContent = () => {
     "/claims/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ claims - Employees ============
-    "/claims/claims-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/claims/claims-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/claims/claims-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/claims/claims-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/claims/employees/all-employees": <AllUsers />,
+    "/claims/employees/free-employees": <div className="">Coming Soon</div>,
+    "/claims/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/claims/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ claims - More Options ============
     "/claims/more-options/re-assign-task": <div className="">Coming Soon</div>,
@@ -203,16 +174,14 @@ const DepartmentContent = () => {
     "/procurement/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ procurement - Employees ============
-    "/procurement/procurement-employees/all-employees": (
+    "/procurement/employees/all-employees": <AllUsers />,
+    "/procurement/employees/free-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/procurement/procurement-employees/free-employees": (
+    "/procurement/employees/busy-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/procurement/procurement-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/procurement/procurement-employees/multi-employees": (
+    "/procurement/employees/multi-employees": (
       <div className="">Coming Soon</div>
     ),
 
@@ -234,16 +203,16 @@ const DepartmentContent = () => {
     "/administration/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ administration - Employees ============
-    "/administration/administration-employees/all-employees": (
+    "/administration/employees/all-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/administration/administration-employees/free-employees": (
+    "/administration/employees/free-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/administration/administration-employees/busy-employees": (
+    "/administration/employees/busy-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/administration/administration-employees/multi-employees": (
+    "/administration/employees/multi-employees": (
       <div className="">Coming Soon</div>
     ),
 
@@ -281,16 +250,14 @@ const DepartmentContent = () => {
     "/development/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ Business Development - Employees ============
-    "/development/business-development-employees/all-employees": (
+    "/development/employees/all-employees": <AllUsers />,
+    "/development/employees/free-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/development/business-development-employees/free-employees": (
+    "/development/employees/busy-employees": (
       <div className="">Coming Soon</div>
     ),
-    "/development/business-development-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/development/business-development-employees/multi-employees": (
+    "/development/employees/multi-employees": (
       <div className="">Coming Soon</div>
     ),
 
@@ -312,18 +279,10 @@ const DepartmentContent = () => {
     "/actuarial/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ Actuarial - Employees ============
-    "/actuarial/actuarial-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/actuarial/actuarial-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/actuarial/actuarial-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/actuarial/actuarial-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/actuarial/employees/all-employees": <AllUsers />,
+    "/actuarial/employees/free-employees": <div className="">Coming Soon</div>,
+    "/actuarial/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/actuarial/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ Actuarial - More Options ============
     "/actuarial/more-options/re-assign-task": (
@@ -333,26 +292,18 @@ const DepartmentContent = () => {
     "/actuarial/more-options/task-reports": <div className="">Coming Soon</div>,
 
     // ============ Technical ============
-    "/technical/tasks/all-tasks": <AllTasks/>,
-    "/technical/tasks/running-tasks": <RunningTasks/>,
-    "/technical/tasks/onhold-tasks": <OnholdTasks/>,
-    "/technical/tasks/overdue-tasks": <OverdueTasks/>,
-    "/technical/tasks/completed-tasks": <CompletedTasks/>,
-    "/technical/tasks/closed-tasks": <ClosedTasks/>,
+    "/technical/tasks/all-tasks": <AllTasks />,
+    "/technical/tasks/running-tasks": <RunningTasks />,
+    "/technical/tasks/onhold-tasks": <OnholdTasks />,
+    "/technical/tasks/overdue-tasks": <OverdueTasks />,
+    "/technical/tasks/completed-tasks": <CompletedTasks />,
+    "/technical/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ Technical - Employees ============
-    "/technical/technical-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/technical/technical-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/technical/technical-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/technical/technical-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/technical/employees/all-employees": <AllUsers />,
+    "/technical/employees/free-employees": <div className="">Coming Soon</div>,
+    "/technical/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/technical/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ Technical - More Options ============
     "/technical/more-options/re-assign-task": (
@@ -362,26 +313,18 @@ const DepartmentContent = () => {
     "/technical/more-options/task-reports": <div className="">Coming Soon</div>,
 
     // ============ Social ============
-    "/social/tasks/all-tasks": <AllTasks/>,
-    "/social/tasks/running-tasks": <RunningTasks/>,
-    "/social/tasks/onhold-tasks": <OnholdTasks/>,
-    "/social/tasks/overdue-tasks": <OverdueTasks/>,
-    "/social/tasks/completed-tasks": <CompletedTasks/>,
-    "/social/tasks/closed-tasks": <ClosedTasks/>,
+    "/social/tasks/all-tasks": <AllTasks />,
+    "/social/tasks/running-tasks": <RunningTasks />,
+    "/social/tasks/onhold-tasks": <OnholdTasks />,
+    "/social/tasks/overdue-tasks": <OverdueTasks />,
+    "/social/tasks/completed-tasks": <CompletedTasks />,
+    "/social/tasks/closed-tasks": <ClosedTasks />,
 
     // ============ Social - Employees ============
-    "/social/social-employees/all-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/social/social-employees/free-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/social/social-employees/busy-employees": (
-      <div className="">Coming Soon</div>
-    ),
-    "/social/social-employees/multi-employees": (
-      <div className="">Coming Soon</div>
-    ),
+    "/social/employees/all-employees": <AllUsers />,
+    "/social/employees/free-employees": <div className="">Coming Soon</div>,
+    "/social/employees/busy-employees": <div className="">Coming Soon</div>,
+    "/social/employees/multi-employees": <div className="">Coming Soon</div>,
 
     // ============ Social - More Options ============
     "/social/more-options/re-assign-task": <div className="">Coming Soon</div>,

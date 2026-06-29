@@ -20,7 +20,7 @@ import { GoTasklist } from "react-icons/go";
 import { RiExportLine } from "react-icons/ri";
 import { GiProgression } from "react-icons/gi";
 import { FaHandHoldingHand } from "react-icons/fa6";
-import { getTasksByDepartment, deleteTask } from "../../services/tasksService";
+import { getTasksByDepartment } from "../../services/tasksService";
 import { FcSalesPerformance, FcExpired } from "react-icons/fc";
 import Button from "../../components/ui/bottons/Button";
 import api from "../../api/axios";
@@ -268,22 +268,6 @@ const AllTasks = () => {
       message: "Task updated!",
       type: "success",
     });
-  };
-
-  //====Handle Task Delete====
-  const handleTaskDelete = async (taskId) => {
-    const response = await deleteTask(taskId);
-
-    if (response.success) {
-      setNotification({
-        message: "Task deleted!",
-        type: "success",
-      });
-
-      return response;
-    }
-
-    throw new Error(response.message);
   };
 
   //====Handle Full Report====
@@ -657,9 +641,7 @@ const AllTasks = () => {
       {/* Welcome and Actions */}
       <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between px-5 py-2 border-b border-gray-200 gap-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold text-zblue">
-            All Tasks
-          </h2>
+          <h2 className="text-sm font-bold text-zblue">All Tasks</h2>
         </div>
         <div className="flex md:gap-2 gap-6">
           <div className="">
@@ -838,8 +820,8 @@ const AllTasks = () => {
                     selectedRows={selectedRows}
                     setSelectedRows={setSelectedRows}
                     onRefresh={fetchDepartmentTasks}
+                    entityType="task"
                     onTaskUpdate={handleTaskUpdate}
-                    onTaskDelete={handleTaskDelete}
                   />
                 </div>
               )}

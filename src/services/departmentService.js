@@ -1,788 +1,387 @@
 import api from "../api/axios";
 
-/* =========================
-   DEPARTMENT DOCUMENT APIS
-   ========================= */
-
-/* Fetch All Department Documents */
-export const fetchDepartmentDocuments = async () => {
+// ============================================
+// DEPARTMENT ENDPOINTS
+// ============================================
+// Get all departments
+export const getAllDepartments = async () => {
   try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-    const res = await api.get("/documents/departments-documents", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return res.data.data || [];
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to access department documents.");
-    }
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* Fetch Single Department Document (with departments inside) */
-export const fetchDepartmentDocumentById = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get(`/documents/departments/${documentId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return res.data.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error(
-        "You do not have permission to access this department document.",
-      );
-    } else if (error.response?.status === 404) {
-      throw new Error("Department document not found.");
-    }
-
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch department document.",
-    );
-  }
-};
-
-/* Fetch Pending Department Documents */
-export const fetchPendingDepartmentDocuments = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get("/documents/pending-department-documents", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return res.data.data || [];
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error(
-        "You do not have permission to access pending department documents.",
-      );
-    }
-
-    throw new Error(
-      error.response?.data?.message ||
-        "Failed to fetch pending department documents.",
-    );
-  }
-};
-
-/* Send Department Document For Approval */
-export const requestDepartmentApproval = async (documentId, data) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const res = await api.put(
-      `/documents/request-department-approval/${documentId}`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data;
-  } catch (error) {
-    throw new Error(
-      error.response?.data?.message || "Failed to send department approval",
-    );
-  }
-};
-
-/* Cancel Department Approval Request */
-export const cancelApprovalRequest = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-    const res = await api.put(
-      `/documents/cancel-request/${documentId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-    return res.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to cancel this request.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Document not found.");
-    }
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* Auto Save Department Document */
-export const autoSaveDepartmentDocument = async (documentId, data) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.put(
-      `/documents/autosave-department-document/${documentId}`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error(
-        "You do not have permission to modify this department document.",
-      );
-    } else if (error.response?.status === 404) {
-      throw new Error("Department document not found.");
-    }
-
-    throw new Error(
-      error.response?.data?.message || "Failed to autosave department document.",
-    );
-  }
-};
-
-/* Approve Department Document Request */
-export const approveDepartmentDocumentRequest = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.put(
-      `/documents/approve-request/${documentId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You are not allowed to approve this request.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Document not found.");
-    }
-
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* Post Department Document */
-export const postDepartmentDocumentRequest = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.put(
-      `/documents/post-department-request/${documentId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error(
-        "You do not have permission to post this department document.",
-      );
-    } else if (error.response?.status === 404) {
-      throw new Error("Department document not found.");
-    }
-
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* Re-Open Department Document Request */
-export const reopenDepartmentDocumentRequest = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.put(
-      `/documents/reopen-request/${documentId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to re-open this document.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Document not found.");
-    }
-
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* Revert Department Document */
-export const revertDepartmentDocumentRequest = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.put(
-      `/documents/revert-request/${documentId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to revert this document.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Document not found.");
-    }
-
-    throw new Error(
-      error.response?.data?.message || "Failed to revert document",
-    );
-  }
-};
-
-/* Clear Department Document Data */
-export const clearDepartmentDocumentData = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.delete(
-      `/documents/clear-document-data/${documentId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return res.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to clear document data.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Document not found.");
-    }
-
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* Fetch Last Department System Number */
-export const fetchLastSystemNumber = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get("/documents/last-system-number", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return res.data.data.systemNumber;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 404) {
-      throw new Error("No document found in the system.");
-    }
-
-    throw new Error(error.response?.data?.message);
-  }
-};
-
-/* =========================
-   DEPARTMENT CRUD APIS
-   ========================= */
-
-/* Fetch All Departments */
-export const fetchDepartments = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get("/departments", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return res.data.data || [];
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to access departments.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Fetch Department By ID */
-export const fetchDepartmentById = async (departmentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get(`/departments/${departmentId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return res.data.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to access this department.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Department not found.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Update Department */
-export const updateDepartment = async (departmentId, updateData) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.put(`/departments/${departmentId}`, updateData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    return res.data.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to update this department.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Department not found.");
-    } else if (error.response?.status === 400) {
-      throw new Error(error.response?.data?.message || "Invalid department data.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Delete Department */
-export const deleteDepartment = async (departmentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.delete(`/departments/${departmentId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return {
-      success: true,
-      message: res.data.message,
-      departmentDeleted: res.data.departmentDeleted,
-    };
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to delete this department.");
-    } else if (error.response?.status === 404) {
-      throw new Error("Department not found.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Search Departments */
-export const searchDepartments = async (searchCriteria) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const queryParams = new URLSearchParams(searchCriteria).toString();
-    const res = await api.get(`/departments/search?${queryParams}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return {
-      departments: res.data.departments || [],
-      pagination: res.data.pagination,
-    };
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to search departments.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Export Departments to Excel */
-export const exportDepartmentsToExcel = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const response = await api.get("/departments/export", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      responseType: "blob",
-    });
-
+    const response = await api.get("/departments/departments");
     return response.data;
   } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to export departments.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
+    console.error("Error fetching all departments:", error);
+    throw error;
   }
 };
-
-/* Download Department Import Template */
-export const downloadDepartmentTemplate = async () => {
+// Get department by ID
+export const getDepartmentById = async (departmentId) => {
   try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const response = await api.get("/departments/download-template", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      responseType: "blob",
-    });
-
+    const response = await api.get(`/departments/departments/${departmentId}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to download the template.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
+    console.error("Error fetching department:", error);
+    throw error;
   }
 };
-
-/* Import Departments from Excel */
-export const importDepartments = async (formData) => {
+// Search departments by name
+export const searchDepartments = async (searchQuery) => {
   try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.post("/departments/import", formData, {
+    const response = await api.get(`/departments/departments/search?query=${encodeURIComponent(searchQuery)}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error searching departments:", error);
+    throw error;
+  }
+};
+// Create a new department
+export const createDepartment = async (departmentData) => {
+  try {
+    const response = await api.post("/departments/new-department", departmentData, {
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     });
-
-    return {
-      success: true,
-      message: res.data.message,
-      documentId: res.data.documentId,
-      documentNumber: res.data.documentNumber,
-      importedCount: res.data.importedCount,
-      data: res.data.data,
-      warnings: res.data.warnings,
-    };
+    return response.data;
   } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to import departments.");
-    } else if (error.response?.status === 400) {
-      throw new Error(error.response?.data?.message || "Invalid import data.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
+    console.error("Error creating department:", error);
+    throw error;
+  }
+};
+// Update a department
+export const updateDepartment = async (departmentId, departmentData) => {
+  try {
+    const response = await api.put(`/departments/departments/${departmentId}`, departmentData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating department:", error);
+    throw error;
+  }
+};
+// Delete a department
+export const deleteDepartment = async (departmentId) => {
+  try {
+    const response = await api.delete(`/departments/departments/${departmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting department:", error);
+    throw error;
+  }
+};
+// Get department statistics
+export const getDepartmentStats = async () => {
+  try {
+    const response = await api.get("/departments/departments/stats");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching department statistics:", error);
+    throw error;
   }
 };
 
-/* Get Department Statistics */
-export const fetchDepartmentStats = async () => {
+// ============================================
+// DEPARTMENT UTILITY FUNCTIONS
+// ============================================
+// Get department name from ID
+export const getDepartmentNameFromId = (departmentId) => {
   try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get("/departments/stats", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return res.data.data;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to view department statistics.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Get Recent Departments */
-export const fetchRecentDepartments = async (limit = 10) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get(`/departments/recent?limit=${limit}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return {
-      count: res.data.count,
-      departments: res.data.data || [],
-    };
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to view recent departments.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Get Departments by Status */
-export const fetchDepartmentsByStatus = async (status) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get(`/departments/status/${status}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return {
-      count: res.data.count,
-      departments: res.data.data || [],
-    };
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to view departments by status.");
-    } else if (error.response?.status === 404) {
-      throw new Error(`No departments found with status: ${status}`);
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Get Departments by Document ID */
-export const fetchDepartmentsByDocumentId = async (documentId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.get(`/departments/document/${documentId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return {
-      count: res.data.count,
-      departments: res.data.data || [],
-    };
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error(
-        "You do not have permission to access this document's departments.",
-      );
-    } else if (error.response?.status === 404) {
-      throw new Error("Document not found.");
-    }
-
-    throw new Error(error.response?.data?.message || error.message);
-  }
-};
-
-/* Batch Update Department Status */
-export const batchUpdateDepartmentStatus = async (departmentIds, status) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found. Please login again.");
-    }
-
-    const res = await api.patch(
-      "/departments/batch/status",
-      { departmentIds, status },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      },
+    // Get departments from localStorage
+    const storedDepartments = JSON.parse(
+      localStorage.getItem("departments") || "[]",
     );
 
-    return {
-      success: true,
-      message: res.data.message,
-      modifiedCount: res.data.modifiedCount,
-    };
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new Error("Session expired. Please login again.");
-    } else if (error.response?.status === 403) {
-      throw new Error("You do not have permission to update department status.");
-    } else if (error.response?.status === 400) {
-      throw new Error(error.response?.data?.message || "Invalid request data.");
+    // Find the department by ID
+    const department = storedDepartments.find(
+      (dept) => dept._id === departmentId,
+    );
+
+    if (department && department.name) {
+      return department.name;
     }
 
-    throw new Error(error.response?.data?.message || error.message);
+    console.error("Department name not found for ID:", departmentId);
+    return null;
+  } catch (error) {
+    console.error("Error getting department name:", error);
+    return null;
+  }
+};
+// Get department ID from name
+export const getDepartmentIdFromName = (departmentName) => {
+  try {
+    // Get departments from localStorage
+    const storedDepartments = JSON.parse(
+      localStorage.getItem("departments") || "[]",
+    );
+
+    // Find the department by name (case insensitive)
+    const department = storedDepartments.find(
+      (dept) => dept.name?.toLowerCase() === departmentName?.toLowerCase(),
+    );
+
+    if (department && department._id) {
+      return department._id;
+    }
+
+    // Fallback: Try to get from user's departments
+    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (storedUser?.departments) {
+      const userDept = storedUser.departments.find(
+        (dept) => dept.name?.toLowerCase() === departmentName?.toLowerCase(),
+      );
+      if (userDept && userDept._id) {
+        return userDept._id;
+      }
+    }
+
+    console.error("Department ID not found for:", departmentName);
+    return null;
+  } catch (error) {
+    console.error("Error getting department ID:", error);
+    return null;
+  }
+};
+// Get all department names (for dropdowns, etc.)
+export const getAllDepartmentNames = () => {
+  try {
+    const storedDepartments = JSON.parse(
+      localStorage.getItem("departments") || "[]",
+    );
+    return storedDepartments.map((dept) => dept.name);
+  } catch (error) {
+    console.error("Error getting department names:", error);
+    return [];
+  }
+};
+// Get departments as options for dropdown/select
+export const getDepartmentOptions = () => {
+  try {
+    const storedDepartments = JSON.parse(
+      localStorage.getItem("departments") || "[]",
+    );
+    return storedDepartments.map((dept) => ({
+      value: dept._id,
+      label: dept.name,
+    }));
+  } catch (error) {
+    console.error("Error getting department options:", error);
+    return [];
+  }
+};
+// Get department by name (returns full department object)
+export const getDepartmentByName = (departmentName) => {
+  try {
+    const storedDepartments = JSON.parse(
+      localStorage.getItem("departments") || "[]",
+    );
+
+    const department = storedDepartments.find(
+      (dept) => dept.name?.toLowerCase() === departmentName?.toLowerCase(),
+    );
+
+    if (department) {
+      return department;
+    }
+
+    console.error("Department not found for:", departmentName);
+    return null;
+  } catch (error) {
+    console.error("Error getting department:", error);
+    return null;
+  }
+};
+// Get current department ID from URL
+export const getCurrentDepartmentId = () => {
+  try {
+    const pathParts = window.location.pathname
+      .split("/")
+      .filter((part) => part);
+    if (pathParts.length > 0) {
+      const departmentSlug = pathParts[0];
+
+      // Map URL slug to department name
+      const slugMap = {
+        pension: "pension",
+        finance: "finance",
+        development: "business development",
+        actuarial: "actuarial",
+        technical: "technical",
+        it: "it",
+        claims: "claims",
+        hr: "human resource",
+        procurement: "procurement",
+        social: "social",
+        administration: "administration",
+      };
+
+      const departmentName = slugMap[departmentSlug] || departmentSlug;
+      return getDepartmentIdFromName(departmentName);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting current department ID:", error);
+    return null;
+  }
+};
+// Get current department name from URL
+export const getCurrentDepartmentName = () => {
+  try {
+    const pathParts = window.location.pathname
+      .split("/")
+      .filter((part) => part);
+    if (pathParts.length > 0) {
+      const departmentSlug = pathParts[0];
+
+      const slugMap = {
+        pension: "pension",
+        finance: "finance",
+        development: "business development",
+        actuarial: "actuarial",
+        technical: "technical",
+        it: "it",
+        claims: "claims",
+        hr: "human resource",
+        procurement: "procurement",
+        social: "social",
+        administration: "administration",
+      };
+
+      return slugMap[departmentSlug] || departmentSlug;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting current department name:", error);
+    return null;
+  }
+};
+// Check if department exists in localStorage
+export const departmentExists = (departmentName) => {
+  try {
+    const storedDepartments = JSON.parse(
+      localStorage.getItem("departments") || "[]",
+    );
+    return storedDepartments.some(
+      (dept) => dept.name?.toLowerCase() === departmentName?.toLowerCase(),
+    );
+  } catch (error) {
+    console.error("Error checking department existence:", error);
+    return false;
+  }
+};
+// Store departments in localStorage (useful after fetching)
+export const storeDepartments = (departments) => {
+  try {
+    localStorage.setItem("departments", JSON.stringify(departments));
+  } catch (error) {
+    console.error("Error storing departments:", error);
+  }
+};
+// Clear departments from localStorage
+export const clearDepartments = () => {
+  try {
+    localStorage.removeItem("departments");
+  } catch (error) {
+    console.error("Error clearing departments:", error);
+  }
+};
+
+// ============================================
+// DEPARTMENT STATISTICS HELPERS
+// ============================================
+// Get department statistics with formatted data
+export const getFormattedDepartmentStats = async () => {
+  try {
+    const response = await getDepartmentStats();
+    
+    if (response.status === "200" && response.data) {
+      const stats = response.data.stats || {};
+      const recentDepts = response.data.recentDepartments || [];
+      
+      return {
+        totalDepartments: stats.totalDepartments || 0,
+        totalUsers: stats.totalUsers || 0,
+        averageUsersPerDept: stats.averageUsersPerDept || 0,
+        maxUsers: stats.maxUsers || 0,
+        minUsers: stats.minUsers || 0,
+        recentDepartments: recentDepts.map((dept) => ({
+          id: dept._id,
+          name: dept.name,
+          userCount: dept.numberOfUsers || 0,
+          createdBy: dept.addedBy?.fullname || "Unknown",
+          createdOn: new Date(dept.createdOn).toLocaleDateString(),
+        })),
+      };
+    }
+    
+    return {
+      totalDepartments: 0,
+      totalUsers: 0,
+      averageUsersPerDept: 0,
+      maxUsers: 0,
+      minUsers: 0,
+      recentDepartments: [],
+    };
+  } catch (error) {
+    console.error("Error getting formatted department stats:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// DEPARTMENT CRUD OPERATIONS WITH CACHE
+// ============================================
+// Fetch all departments and store in localStorage
+export const fetchAndStoreDepartments = async () => {
+  try {
+    const response = await getAllDepartments();
+    if (response.status === "200" && response.data) {
+      storeDepartments(response.data);
+      return response.data;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching and storing departments:", error);
+    throw error;
+  }
+};
+// Create department and update cache
+export const createDepartmentAndUpdateCache = async (departmentData) => {
+  try {
+    const response = await createDepartment(departmentData);
+    if (response.status === "201") {
+      // Refresh cache
+      await fetchAndStoreDepartments();
+    }
+    return response;
+  } catch (error) {
+    console.error("Error creating department:", error);
+    throw error;
+  }
+};
+// Update department and update cache
+export const updateDepartmentAndUpdateCache = async (departmentId, departmentData) => {
+  try {
+    const response = await updateDepartment(departmentId, departmentData);
+    if (response.status === "200") {
+      // Refresh cache
+      await fetchAndStoreDepartments();
+    }
+    return response;
+  } catch (error) {
+    console.error("Error updating department:", error);
+    throw error;
+  }
+};
+// Delete department and update cache
+export const deleteDepartmentAndUpdateCache = async (departmentId) => {
+  try {
+    const response = await deleteDepartment(departmentId);
+    if (response.status === "200") {
+      // Refresh cache
+      await fetchAndStoreDepartments();
+    }
+    return response;
+  } catch (error) {
+    console.error("Error deleting department:", error);
+    throw error;
   }
 };

@@ -5,7 +5,7 @@ import { IoMdClose } from "react-icons/io";
 import { CiEdit, CiFilter } from "react-icons/ci";
 import { GoTasklist } from "react-icons/go";
 import { RiExportLine } from "react-icons/ri";
-import { getTasksByDepartment, deleteTask } from "../../services/tasksService";
+import { getTasksByDepartment } from "../../services/tasksService";
 import Button from "../../components/ui/bottons/Button";
 import api from "../../api/axios";
 import NewTasks from "../../components/ui/models/tasks/NewTasks";
@@ -262,22 +262,6 @@ const ClosedTasks = () => {
       message: "Task updated!",
       type: "success",
     });
-  };
-
-  //====Handle Task Delete====
-  const handleTaskDelete = async (taskId) => {
-    const response = await deleteTask(taskId);
-
-    if (response.success) {
-      setNotification({
-        message: "Task deleted!",
-        type: "success",
-      });
-
-      return response;
-    }
-
-    throw new Error(response.message);
   };
 
   //====Handle Full Report====
@@ -737,8 +721,8 @@ const ClosedTasks = () => {
                     selectedRows={selectedRows}
                     setSelectedRows={setSelectedRows}
                     onRefresh={fetchDepartmentTasks}
+                    entityType="task"
                     onTaskUpdate={handleTaskUpdate}
-                    onTaskDelete={handleTaskDelete}
                   />
                 </div>
               )}
