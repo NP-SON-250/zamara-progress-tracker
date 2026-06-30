@@ -630,7 +630,7 @@ const OverdueTasks = () => {
       )}
 
       {/* Welcome and Actions */}
-      <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between px-5 py-2 border-b border-gray-200 gap-4">
+      <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between md:px-5 px-2 py-2 border-b border-gray-200 gap-4">
         <div className="flex items-center gap-2">
           <h2 className="text-md font-bold text-zblue">Overdue Tasks</h2>
         </div>
@@ -672,7 +672,7 @@ const OverdueTasks = () => {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-hidden px-5 pb-4 pt-2">
+      <div className="flex-1 overflow-hidden md:px-5 px-2 pb-4 pt-2">
         <div className="h-full flex flex-col gap-3 overflow-y-auto scrollbar-hide">
           {/* Table Section */}
           <div className="flex-1 min-h-[200px] border border-gray-200 rounded-md flex flex-col">

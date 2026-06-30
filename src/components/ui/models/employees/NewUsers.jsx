@@ -223,13 +223,13 @@ const NewUser = ({ isOpen, onClose, onUserCreated }) => {
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
       onClick={handleOverlayClick}
     >
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl w-full md:max-w-4xl max-h-[85vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
-          <h2 className="text-lg font-bold text-zblue">Create New User</h2>
+        <div className="flex items-center justify-between p-2 border-b border-gray-200 bg-white z-10 relative">
+          <h2 className="text-md font-semi-bold text-zblue/60">Create New User</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors absolute right-0 top-0"
           >
             <IoMdClose size={24} className="text-gray-500" />
           </button>
@@ -237,113 +237,121 @@ const NewUser = ({ isOpen, onClose, onUserCreated }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Full Name */}
-          <Input
-            label="Full Name"
-            type="text"
-            name="fullname"
-            value={formData.fullname}
-            onChange={handleChange}
-            placeholder="Enter full name"
-            required
-          />
+          <div className="flex md:flex-row flex-col items-center gap-4">
+            <div className="w-full">
+              {/* Full Name */}
+              <Input
+                label="Full Name"
+                type="text"
+                name="fullname"
+                value={formData.fullname}
+                onChange={handleChange}
+                placeholder="Enter full name"
+                required
+              />
 
-          {/* Email */}
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Enter email address"
-            required
-          />
+              {/* Email */}
+              <Input
+                label="Email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter email address"
+                required
+              />
 
-          {/* Password */}
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Enter password (min 6 characters)"
-            required
-          />
-          {passwordStrength && (
-            <p
-              className={`text-xs -mt-2 ${
-                passwordStrength === "Strong"
-                  ? "text-green-600"
-                  : passwordStrength === "Medium"
-                    ? "text-yellow-600"
-                    : "text-red-600"
-              }`}
-            >
-              Password Strength: {passwordStrength}
-            </p>
-          )}
+              {/* Password */}
+              <Input
+                label="Password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter password (min 6 characters)"
+                required
+              />
+              {passwordStrength && (
+                <p
+                  className={`text-xs -mt-2 ${
+                    passwordStrength === "Strong"
+                      ? "text-green-600"
+                      : passwordStrength === "Medium"
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                  }`}
+                >
+                  Password Strength: {passwordStrength}
+                </p>
+              )}
+            </div>
+            <div className="w-full">
+              {/* Role */}
+              <Input
+                label="Role"
+                type="select"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                options={["User", "Admin"]}
+                required
+              />
 
-          {/* Confirm Password */}
-          <Input
-            label="Confirm Password"
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder="Confirm password"
-            required
-          />
-          {!passwordMatch && formData.confirmPassword && (
-            <p className="text-xs text-red-600 -mt-2">Passwords do not match</p>
-          )}
-
-          {/* Role */}
-          <Input
-            label="Role"
-            type="select"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            options={["User", "Admin"]}
-            required
-          />
-
-          {/* Status */}
-          <Input
-            label="Status"
-            type="select"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            options={["Active", "Inactive"]}
-            required
-          />
+              {/* Status */}
+              <Input
+                label="Status"
+                type="select"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                options={["Active", "Inactive"]}
+                required
+              />
+              {/* Confirm Password */}
+              <Input
+                label="Confirm"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm password"
+                required
+              />
+              {!passwordMatch && formData.confirmPassword && (
+                <p className="text-xs text-red-600 -mt-2">
+                  Passwords do not match
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* Departments - Multi Select */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Departments *
-            </label>
-            <select
-              name="departments"
-              multiple
-              value={formData.departments}
-              onChange={handleDepartmentSelect}
-              className="w-full border border-gray-400 rounded px-2 py-1 text-sm focus:outline-none focus:border-zgreen hover:border-zgreen min-h-[80px]"
-              required
-            >
-              {departments.length === 0 ? (
-                <option value="" disabled>
-                  No departments available
-                </option>
-              ) : (
-                departments.map((dept) => (
-                  <option key={dept._id} value={dept._id}>
-                    {dept.name}
+            <div className="flex md:flex-row flex-col md:items-center gap-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1 w-[110px]">
+                Departments *
+              </label>
+              <select
+                name="departments"
+                multiple
+                value={formData.departments}
+                onChange={handleDepartmentSelect}
+                className="w-full border border-gray-400 rounded px-2 py-1 text-sm focus:outline-none focus:border-zgreen hover:border-zgreen min-h-[80px]"
+                required
+              >
+                {departments.length === 0 ? (
+                  <option value="" disabled>
+                    No departments available
                   </option>
-                ))
-              )}
-            </select>
+                ) : (
+                  departments.map((dept) => (
+                    <option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
             <p className="text-xs text-gray-400 mt-1">
               Hold Ctrl (Cmd on Mac) to select multiple departments
             </p>

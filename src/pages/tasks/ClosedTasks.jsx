@@ -617,7 +617,7 @@ const ClosedTasks = () => {
       {/* Notification Banner */}
       {notification.message && (
         <div
-          className={`fixed top-20 right-4 z-50 px-4 py-3 rounded-md shadow-lg transition-all duration-300 ${
+          className={`fixed top-20 right-4 z-50 py-3 rounded-md shadow-lg transition-all duration-300 ${
             notification.type === "success"
               ? "bg-green-50 border border-green-200 text-green-800"
               : "bg-red-50 border border-red-200 text-red-800"
@@ -628,7 +628,7 @@ const ClosedTasks = () => {
       )}
 
       {/* Welcome and Actions */}
-      <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between px-5 py-2 border-b border-gray-200 gap-4">
+      <div className="flex-shrink-0 bg-white z-30 sticky top-0 flex flex-wrap items-center justify-between md:px-5 px-3 py-2 border-b border-gray-200 gap-4">
         <div className="flex items-center gap-2">
           <h2 className="text-md font-bold text-zblue">Closed Tasks</h2>
         </div>
@@ -670,7 +670,7 @@ const ClosedTasks = () => {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-hidden px-5 pb-4 pt-2">
+      <div className="flex-1 overflow-hidden md:px-5 px-2 pb-4 pt-2">
         <div className="h-full flex flex-col gap-3 overflow-y-auto scrollbar-hide">
           {/* Table Section */}
           <div className="flex-1 min-h-[200px] border border-gray-200 rounded-md flex flex-col">

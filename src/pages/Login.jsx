@@ -302,7 +302,7 @@ const Login = () => {
 
   /*UI*/
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
+    <div className="h-screen flex items-center justify-center bg-gray-100 md:px-0 px-10">
       <form
         onSubmit={step === "login" ? handleLogin : handleVerifyOtp}
         className="bg-gray-200 border border-gray-400 shadow-md rounded-md px-6 pb-6 pt-3 w-96 relative"
